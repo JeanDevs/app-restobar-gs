@@ -1,5 +1,16 @@
 import type { CierreDia, DataClient, LineaPedido, NuevoItem } from './dataClient'
-import type { Item, Mesa, Orden, OrdenItem, Perfil, TipoPago } from '../types'
+import type {
+  Item,
+  Mesa,
+  Orden,
+  OrdenItem,
+  Pago,
+  Perfil,
+  RegistroAuditoria,
+  TipoPago,
+} from '../types'
+import { saldoPendiente } from '../types'
+import { etiquetaMesa, soles } from '../lib/format'
 import {
   CREDENCIALES_MOCK,
   ITEMS_SEED,
@@ -17,13 +28,15 @@ import {
 //   sincronización entre pestañas vía el evento 'storage'.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const LS_KEY = 'restobar-gs:db:v1'
+// v2: agrega pagos[]/pagado/auditoria (cobro parcial + anular + auditoría, D-E/D-F/D-G).
+const LS_KEY = 'restobar-gs:db:v2'
 const LS_SESION = 'restobar-gs:sesion:v1'
 
 interface DB {
   items: Item[]
   mesas: Mesa[]
   ordenes: Orden[]
+  auditoria: RegistroAuditoria[]
 }
 
 function uid(prefix: string): string {
@@ -39,6 +52,7 @@ function semilla(): DB {
     items: ITEMS_SEED.map((i) => ({ ...i })),
     mesas: MESAS_SEED.map((m) => ({ ...m })),
     ordenes: [],
+    auditoria: [],
   }
 }
 
@@ -57,6 +71,7 @@ function cargar(): DB {
 function recalcular(orden: Orden): Orden {
   orden.cantidad = orden.items.reduce((s, it) => s + it.cantidad, 0)
   orden.total = orden.items.reduce((s, it) => s + it.subtotal, 0)
+  orden.pagado = orden.pagos.reduce((s, p) => s + p.monto, 0)
   return orden
 }
 
@@ -185,12 +200,15 @@ class MockClient implements DataClient {
       tipo_pago: null,
       estado: 'ABIERTA',
       total_final: null,
+      pagado: 0,
       mozo: this.getSesion()?.usuario ?? null,
       comensal: null,
       dia_cerrado: false,
+      motivo_anulacion: null,
       creado_en: new Date().toISOString(),
       cerrado_en: null,
       items: [],
+      pagos: [],
     }
     this.db.ordenes.push(orden)
     this.setMesaEstado(mesaNumero, 'OCUPADA')
@@ -202,7 +220,8 @@ class MockClient implements DataClient {
     const item = this.db.items.find((i) => i.id === itemId)
     if (!item || cantidad < 1) return
     const existente = orden.items.find((oi) => oi.item_id === itemId)
-    if (existente) {
+    if (existente && !existente.pagado) {
+      // Solo mergeamos en una línea NO pagada (una pagada queda intacta en su cobro).
       existente.cantidad += cantidad
       existente.subtotal = existente.cantidad * existente.item_precio
     } else {
@@ -214,6 +233,7 @@ class MockClient implements DataClient {
         item_precio: item.precio,
         cantidad,
         subtotal: item.precio * cantidad,
+        pagado: false,
       }
       orden.items.push(oi)
     }
@@ -245,6 +265,10 @@ class MockClient implements DataClient {
     )
     if (!orden) return this.tick(null)
 
+    // No se puede quitar un ítem ya cobrado (cobro parcial): el dinero ya entró.
+    const objetivo = orden.items.find((oi) => oi.id === ordenItemId)
+    if (objetivo?.pagado) throw new Error('No se puede quitar un ítem ya cobrado')
+
     orden.items = orden.items.filter((oi) => oi.id !== ordenItemId)
     recalcular(orden)
 
@@ -269,26 +293,98 @@ class MockClient implements DataClient {
     return this.tick(orden)
   }
 
+  // Registra un cobro sobre los ítems indicados (los que aún no estén pagados) y los marca.
+  // Devuelve el monto efectivamente cobrado. No hace commit (lo hace quien llama).
+  private registrarPago(
+    orden: Orden,
+    ordenItemIds: string[],
+    tipoPago: TipoPago,
+    parcial: boolean,
+  ): number {
+    const cubiertos = orden.items.filter(
+      (it) => ordenItemIds.includes(it.id) && !it.pagado,
+    )
+    const monto = cubiertos.reduce((s, it) => s + it.subtotal, 0)
+    cubiertos.forEach((it) => {
+      it.pagado = true
+    })
+    const pago: Pago = {
+      id: uid('pago'),
+      orden_id: orden.id,
+      monto,
+      tipo_pago: tipoPago,
+      parcial,
+      item_ids: cubiertos.map((it) => it.id),
+      mozo: this.getSesion()?.usuario ?? null,
+      creado_en: new Date().toISOString(),
+    }
+    orden.pagos.push(pago)
+    return monto
+  }
+
+  async cobrarParcial(
+    ordenId: string,
+    ordenItemIds: string[],
+    tipoPago: TipoPago,
+  ): Promise<Orden> {
+    const orden = this.db.ordenes.find((o) => o.id === ordenId && o.estado === 'ABIERTA')
+    if (!orden) throw new Error('Orden no encontrada o ya cerrada')
+    const monto = this.registrarPago(orden, ordenItemIds, tipoPago, true)
+    if (monto <= 0) throw new Error('Esos ítems ya estaban cobrados')
+    recalcular(orden)
+    this.commit()
+    return this.tick(orden)
+  }
+
   async finalizarOrden(ordenId: string, tipoPago: TipoPago): Promise<void> {
     const orden = this.db.ordenes.find((o) => o.id === ordenId)
     if (!orden) throw new Error('Orden no encontrada')
+    // Salda el resto pendiente (ítems aún no cobrados) con este tipo de pago.
+    const pendientes = orden.items.filter((it) => !it.pagado).map((it) => it.id)
+    if (pendientes.length > 0) this.registrarPago(orden, pendientes, tipoPago, false)
     orden.estado = 'CERRADA'
-    orden.tipo_pago = tipoPago
+    orden.tipo_pago = tipoPago // pago del cierre (el detalle por tipo vive en orden.pagos)
     orden.total_final = orden.total
     orden.cerrado_en = new Date().toISOString()
+    recalcular(orden) // pagado pasa a ser igual al total
     this.setMesaEstado(orden.mesa_numero, 'VACIA')
     this.commit()
     await this.tick(null)
   }
 
+  async anularOrden(ordenId: string, motivo: string, claveAdmin: string): Promise<void> {
+    if (!this.esClaveAdmin(claveAdmin)) throw new Error('Clave de administrador incorrecta')
+    const orden = this.db.ordenes.find((o) => o.id === ordenId)
+    if (!orden) throw new Error('Orden no encontrada')
+    const motivoLimpio = motivo.trim()
+    if (!motivoLimpio) throw new Error('El motivo es obligatorio')
+
+    orden.estado = 'ANULADA'
+    orden.motivo_anulacion = motivoLimpio
+    orden.cerrado_en = new Date().toISOString()
+    this.setMesaEstado(orden.mesa_numero, 'VACIA')
+
+    const yaCobrado = orden.pagado > 0 ? ` · ya cobrado ${soles(orden.pagado)}` : ''
+    this.registrarAuditoria(
+      'ANULAR_ORDEN',
+      `${etiquetaMesa(orden.mesa_numero)} · ${soles(orden.total)}${yaCobrado} · motivo: ${motivoLimpio} · autorizado con clave admin`,
+    )
+    this.commit()
+    await this.tick(null)
+  }
+
   async getOrdenesCerradas(): Promise<Orden[]> {
+    // Incluye ANULADA para que el historial las muestre (los reportes las excluyen de ventas).
     const cerradas = this.db.ordenes
-      .filter((o) => o.estado === 'CERRADA' || o.estado === 'PAGADA')
+      .filter(
+        (o) => o.estado === 'CERRADA' || o.estado === 'PAGADA' || o.estado === 'ANULADA',
+      )
       .sort((a, b) => (b.cerrado_en ?? '').localeCompare(a.cerrado_en ?? ''))
     return this.tick(cerradas)
   }
 
-  async cerrarDia(): Promise<CierreDia> {
+  async cerrarDia(claveAdmin: string): Promise<CierreDia> {
+    if (!this.esClaveAdmin(claveAdmin)) throw new Error('Clave de administrador incorrecta')
     const hoy = new Date().toDateString()
     const delDia = this.db.ordenes.filter(
       (o) =>
@@ -299,9 +395,40 @@ class MockClient implements DataClient {
     )
     const total = delDia.reduce((s, o) => s + (o.total_final ?? 0), 0)
     for (const o of delDia) o.dia_cerrado = true
+    this.registrarAuditoria('CIERRE_DIA', `${soles(total)} · ${delDia.length} pedido(s)`)
     this.commit()
     await this.tick(null)
     return { fecha: new Date().toISOString(), total, conteo: delDia.length }
+  }
+
+  // ── Seguridad / auditoría (D-F, D-G) ──
+  private esClaveAdmin(clave: string): boolean {
+    const admin = PERFILES_SEED.find((p) => p.rol === 'ADMIN')
+    return !!admin && CREDENCIALES_MOCK[admin.usuario] === clave
+  }
+
+  private registrarAuditoria(
+    accion: RegistroAuditoria['accion'],
+    detalle: string,
+  ): void {
+    this.db.auditoria.push({
+      id: uid('aud'),
+      accion,
+      usuario: this.getSesion()?.usuario ?? 'sistema',
+      detalle,
+      creado_en: new Date().toISOString(),
+    })
+  }
+
+  async verificarClaveAdmin(clave: string): Promise<boolean> {
+    return this.tick(this.esClaveAdmin(clave))
+  }
+
+  async getAuditoria(): Promise<RegistroAuditoria[]> {
+    const orden = this.db.auditoria
+      .slice()
+      .sort((a, b) => b.creado_en.localeCompare(a.creado_en))
+    return this.tick(orden)
   }
 
   // ── Realtime ──

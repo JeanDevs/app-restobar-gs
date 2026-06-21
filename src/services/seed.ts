@@ -23,8 +23,10 @@ export const ITEMS_SEED: Item[] = [
   item('Cerveza 3 Cruces (1 und)', 8, 'Cervezas'),
   item('Cerveza 3 Cruces (2 und)', 15, 'Cervezas'),
   // Gaseosas
-  item('Inka Cola / Coca Cola (500 mL)', 5, 'Gaseosas'),
-  item('Inka Cola / Coca Cola (1.5 L)', 14, 'Gaseosas'),
+  item('Inka Cola (500 mL)', 5, 'Gaseosas'),
+  item('Coca Cola (500 mL)', 5, 'Gaseosas'),
+  item('Inka Cola (1.5 L)', 14, 'Gaseosas'),
+  item('Coca Cola (1.5 L)', 14, 'Gaseosas'),
   // Aguas
   item('Agua Cielo (625 mL)', 3, 'Aguas'),
   item('San Mateo (625 mL)', 3.5, 'Aguas'),

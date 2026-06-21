@@ -1,4 +1,12 @@
-import type { Categoria, Item, Mesa, Orden, Perfil, TipoPago } from '../types'
+import type {
+  Categoria,
+  Item,
+  Mesa,
+  Orden,
+  Perfil,
+  RegistroAuditoria,
+  TipoPago,
+} from '../types'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CONTRATO de la capa de datos.
@@ -51,10 +59,22 @@ export interface DataClient {
   quitarItem(ordenItemId: string): Promise<Orden | null>
   // Asigna el nombre del comensal a la orden abierta de la mesa (si existe).
   setComensal(mesaNumero: number, nombre: string): Promise<Orden | null>
+  // Cobro parcial (D-E): cobra ciertos ítems con un tipo de pago; la orden sigue ABIERTA
+  // con saldo pendiente. Devuelve la orden actualizada.
+  cobrarParcial(ordenId: string, ordenItemIds: string[], tipoPago: TipoPago): Promise<Orden>
+  // Finaliza la orden: salda el resto pendiente con `tipoPago` y la cierra.
   finalizarOrden(ordenId: string, tipoPago: TipoPago): Promise<void>
+  // Anula una orden con consumo (D-F): requiere la clave del admin + motivo. Marca
+  // ANULADA, libera la mesa y deja registro de auditoría. Lanza si la clave es inválida.
+  anularOrden(ordenId: string, motivo: string, claveAdmin: string): Promise<void>
   getOrdenesCerradas(): Promise<Orden[]>
-  // Cierre de día (solo admin): marca las órdenes de hoy como ya contabilizadas.
-  cerrarDia(): Promise<CierreDia>
+  // Cierre de día (D-G): exige la clave del admin; marca las órdenes de hoy como
+  // contabilizadas y deja registro de auditoría. Lanza si la clave es inválida.
+  cerrarDia(claveAdmin: string): Promise<CierreDia>
+  // Valida la clave del admin sin abrir sesión nueva (gates de UI: anular, cerrar día).
+  verificarClaveAdmin(clave: string): Promise<boolean>
+  // Registro de auditoría (solo admin), más reciente primero.
+  getAuditoria(): Promise<RegistroAuditoria[]>
 
   // ── Realtime (emulado en mock, Supabase Realtime en Fase 2) ──
   subscribe(callback: () => void): () => void // devuelve función de desuscripción

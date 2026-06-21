@@ -43,5 +43,13 @@ export function useOrdenes(mesaNumero: number | null) {
     },
     finalizarOrden: (ordenId: string, tipoPago: TipoPago) =>
       db.finalizarOrden(ordenId, tipoPago),
+    // Cobro parcial (D-E): cobra los ítems indicados sobre la orden actual, que sigue abierta.
+    cobrarParcial: (ordenItemIds: string[], tipoPago: TipoPago) => {
+      if (orden) return db.cobrarParcial(orden.id, ordenItemIds, tipoPago)
+    },
+    // Anular (D-F): cancela la orden actual con motivo y clave de administrador.
+    anular: (motivo: string, claveAdmin: string) => {
+      if (orden) return db.anularOrden(orden.id, motivo, claveAdmin)
+    },
   }
 }

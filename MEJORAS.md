@@ -30,26 +30,43 @@
 - El botón de **Agregar** (commit del carrito) ahora está en la **parte superior** del módulo, antes de la
   lista "Por agregar" y del buscador.
 
+### M-07 · Separar Inka Cola y Coca Cola — **HECHO**
+- Ahora son 4 ítems independientes: **Inka Cola (500 mL)**, **Coca Cola (500 mL)**, **Inka Cola (1.5 L)**,
+  **Coca Cola (1.5 L)** (mismos precios). Carta: 22 → **24 ítems**. Afecta `seed.ts` y `seed.sql`.
+
+### M-10 · (Móvil) "Orden actual" arriba — **HECHO**
+- En **móvil** el módulo **Orden actual** (Guardar/Finalizar/Cobro parcial/Anular) va **arriba** del módulo
+  Agregar. En **desktop** se mantiene en dos columnas (Agregar izq · Orden actual der). Vía Tailwind `order`.
+
+### M-12 · Cobro parcial (antes M-02) — **HECHO** *(D-E)*
+- Se puede **cobrar ítems puntuales antes de cerrar la mesa**, con su propio tipo de pago. La orden sigue
+  **ABIERTA** con **saldo pendiente**; admite **varios tipos de pago por sesión** (ej. gaseosa con Yape,
+  cerveza con Efectivo). Al finalizar se salda solo lo pendiente. Nueva tabla `pagos` + `pagado` en `ordenes`
+  y `orden_items.pagado`. Un ítem ya cobrado no se puede quitar. Reportes reparten por `pago.tipo_pago`.
+  **Verificado:** orden S/20 → Yape S/5 (25%) + Efectivo S/15 (75%) en el resumen.
+
+### M-13 · Anular mesa con consumo — **HECHO** *(D-F)*
+- Botón **Anular mesa**: exige **clave de admin + motivo obligatorio**; marca la orden `ANULADA`, libera la
+  mesa y la **excluye de ventas** (badge "Anulada" en historial). Queda en **auditoría**. Clave incorrecta →
+  se rechaza y el modal queda abierto. **Verificado** (clave mala rechazada · clave correcta anula + log).
+
+### M-11 · Cierre de día con clave + auditoría — **HECHO** *(D-G)*
+- **Cerrar día** ahora exige **re-ingresar la clave del admin** (sin usuario nuevo) y deja **registro de
+  auditoría** (quién, total, # pedidos). **Verificado:** desglose correcto (Yape 5 + Efectivo 15), reinicia
+  "hoy" a 0, log creado. Nueva pestaña **🔒 Auditoría** en el panel admin (solo lectura, solo admin).
+
+### M-04 · Permisos por mozo — **PARCIAL (versión light)**
+- **Hecho (mock):** un **mozo** no puede Finalizar/Cobrar/Anular la mesa de **otro mozo** (se bloquea con
+  nota "Mesa de otro mozo"); el **admin** nunca se bloquea. Agregar ítems sí se permite.
+- **Pendiente (Fase 2):** identidad real vía Supabase Auth + el flujo "un mozo finaliza la mesa de otro
+  **con notificación al admin para aprobar**". El campo `mozo` ya existe en `ordenes`.
+
 ---
 
 ## ⏳ Pendientes
 
-### M-02 · Pago previo de un ítem (pago parcial)
-- **Qué:** un cliente puede **pagar un ítem en particular antes de cerrar la mesa**.
-- **Por qué:** alguien se va antes y paga solo lo suyo; el resto sigue en la mesa abierta.
-- **A contemplar:** marcar ítems de la orden como "ya pagados" (con su tipo de pago), que no se vuelvan a
-  cobrar al cerrar; el total final solo suma lo pendiente. Afecta `orden_items` (estado/pago por línea) y el cierre.
-
-### M-04 · Permisos de finalización por mozo
-- **Qué:** **solo el mozo dueño** puede guardar/finalizar su propia mesa. El **admin** puede en nombre del mozo.
-  Un mozo **NO** puede finalizar pedidos de **otro** mozo.
-- **Futuro:** permitir que un mozo finalice la mesa de otro, **enviando una notificación al admin para aprobar**.
-- **Depende de:** identidad real del mozo (Fase 2, Supabase Auth). El campo `mozo` ya existe en `ordenes`.
-
-### M-07 · Separar Inka Cola y Coca Cola *(para después)*
-- **Qué:** hoy están como un solo ítem (`Inka Cola / Coca Cola`). Separarlos en **ítems independientes** por
-  presentación (500 mL y 1.5 L) para **saber cuál vende más**.
-- **Prioridad:** baja ("para después"). Afecta la semilla de `items` y la carta.
+### M-04 (resto) · Aprobación cruzada entre mozos
+- Requiere Auth real (Fase 2): un mozo opera la mesa de otro enviando **notificación al admin para aprobar**.
 
 ---
 

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Modal from '../Shared/Modal'
 import { soles, etiquetaMesa } from '../../lib/format'
-import { TIPOS_PAGO } from '../../types'
+import { TIPOS_PAGO, saldoPendiente } from '../../types'
 import type { Orden, TipoPago } from '../../types'
 
 interface FinalizarModalProps {
@@ -17,6 +17,10 @@ export default function FinalizarModal({
 }: FinalizarModalProps) {
   const [tipo, setTipo] = useState<TipoPago | null>(null)
 
+  // Con cobros parciales (D-E), al cerrar solo se cobra el saldo, no el total.
+  const hayCobros = orden.pagado > 0
+  const saldo = saldoPendiente(orden)
+
   return (
     <Modal titulo="¿Finalizar pedido?" onClose={onCancel}>
       <div className="mb-4 rounded-lg bg-slate-50 px-3 py-2 text-sm">
@@ -30,9 +34,17 @@ export default function FinalizarModal({
             <span className="font-semibold">{orden.comensal}</span>
           </div>
         )}
+        {hayCobros && (
+          <div className="flex justify-between">
+            <span className="text-slate-500">Pagado</span>
+            <span className="font-semibold text-emerald-600">{soles(orden.pagado)}</span>
+          </div>
+        )}
         <div className="flex justify-between">
-          <span className="text-slate-500">Total</span>
-          <span className="font-semibold">{soles(orden.total)}</span>
+          <span className="text-slate-500">{hayCobros ? 'Saldo a cobrar' : 'Total'}</span>
+          <span className="font-semibold">
+            {hayCobros && saldo === 0 ? 'Sin saldo pendiente' : soles(hayCobros ? saldo : orden.total)}
+          </span>
         </div>
       </div>
 

@@ -12,14 +12,22 @@ export default function CerrarDia() {
   const pushToast = useStore((s) => s.pushToast)
   const [abierto, setAbierto] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [clave, setClave] = useState('')
+
+  // Cierra el modal y limpia el campo de clave para no dejarlo precargado.
+  function cerrarModal() {
+    setAbierto(false)
+    setClave('')
+  }
 
   async function confirmar() {
     setBusy(true)
     try {
-      const r = await db.cerrarDia()
+      const r = await db.cerrarDia(clave)
       pushToast(`Día cerrado · ${soles(r.total)} · ${r.conteo} pedido(s)`, 'ok')
-      setAbierto(false)
+      cerrarModal()
     } catch (e) {
+      // Clave incorrecta u otro error: avisamos pero dejamos el modal abierto para reintentar.
       pushToast(e instanceof Error ? e.message : 'No se pudo cerrar el día', 'error')
     } finally {
       setBusy(false)
@@ -46,7 +54,7 @@ export default function CerrarDia() {
       {abierto && (
         <Modal
           titulo="Cerrar día · corte de caja"
-          onClose={busy ? undefined : () => setAbierto(false)}
+          onClose={busy ? undefined : cerrarModal}
         >
           <div className="mb-4 space-y-1 rounded-lg bg-slate-50 px-3 py-3 text-sm">
             <div className="flex justify-between">
@@ -77,15 +85,35 @@ export default function CerrarDia() {
             Al cerrar, estos pedidos dejan de contar en "hoy". El historial completo se conserva.
           </p>
 
-          <div className="flex gap-2">
-            <button
-              className="btn-ghost flex-1"
-              onClick={() => setAbierto(false)}
+          {/* Clave de administrador: requerida para confirmar el cierre. */}
+          <div className="mb-4">
+            <label className="label" htmlFor="clave-admin-cierre">
+              Clave de administrador
+            </label>
+            <input
+              id="clave-admin-cierre"
+              className="input"
+              type="password"
+              value={clave}
+              onChange={(e) => setClave(e.target.value)}
               disabled={busy}
-            >
+              autoComplete="off"
+            />
+            <p className="mt-1 text-xs text-slate-400">
+              Confirmar el cierre requiere la clave del administrador. Queda registrado en
+              auditoría.
+            </p>
+          </div>
+
+          <div className="flex gap-2">
+            <button className="btn-ghost flex-1" onClick={cerrarModal} disabled={busy}>
               Cancelar
             </button>
-            <button className="btn-danger flex-1" onClick={confirmar} disabled={busy}>
+            <button
+              className="btn-danger flex-1"
+              onClick={confirmar}
+              disabled={busy || clave.trim() === ''}
+            >
               {busy ? 'Cerrando…' : 'Confirmar cierre'}
             </button>
           </div>

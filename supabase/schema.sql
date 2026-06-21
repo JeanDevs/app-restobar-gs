@@ -40,11 +40,13 @@ create table if not exists public.ordenes (
   total        numeric(10,2) not null default 0,
   cantidad     int not null default 0,
   tipo_pago    text check (tipo_pago in ('Yape', 'PLIN', 'Efectivo', 'Tarjeta')),
-  estado       text not null default 'ABIERTA' check (estado in ('ABIERTA', 'CERRADA', 'PAGADA')),
+  estado       text not null default 'ABIERTA' check (estado in ('ABIERTA', 'CERRADA', 'PAGADA', 'ANULADA')),
   total_final  numeric(10,2),
+  pagado       numeric(10,2) not null default 0,  -- suma de cobros (parciales + cierre) (D-E)
   mozo         text,           -- usuario que tomó el pedido (snapshot; ver perfiles.usuario)
   comensal     text,           -- nombre/apodo corto para identificar (además de la mesa)
   dia_cerrado  boolean not null default false,  -- true si ya entró en un cierre de día
+  motivo_anulacion text,        -- si estado = 'ANULADA' (D-F)
   creado_en    timestamptz not null default now(),
   cerrado_en   timestamptz
 );
@@ -66,10 +68,38 @@ create table if not exists public.orden_items (
   item_precio  numeric(10,2) not null,
   cantidad     int not null check (cantidad > 0),
   subtotal     numeric(10,2) not null,
+  pagado       boolean not null default false,  -- cubierto por un cobro parcial (D-E)
   creado_en    timestamptz not null default now()
 );
 
 create index if not exists ix_orden_items_orden on public.orden_items (orden_id);
+
+-- ── PAGOS (cobros: parciales + cierre) (D-E) ────────────────────────────────
+-- Una orden puede tener varios cobros con distinto tipo de pago. Ej.: la gaseosa
+-- con Yape (parcial) y luego la cerveza con Efectivo (cierre).
+create table if not exists public.pagos (
+  id           uuid primary key default gen_random_uuid(),
+  orden_id     uuid not null references public.ordenes(id) on delete cascade,
+  monto        numeric(10,2) not null check (monto >= 0),
+  tipo_pago    text not null check (tipo_pago in ('Yape', 'PLIN', 'Efectivo', 'Tarjeta')),
+  parcial      boolean not null default false,  -- true = cobro parcial; false = pago de cierre
+  item_ids     jsonb not null default '[]',     -- orden_items cubiertos por este cobro
+  mozo         text,                            -- quién registró el cobro
+  creado_en    timestamptz not null default now()
+);
+
+create index if not exists ix_pagos_orden on public.pagos (orden_id);
+
+-- ── AUDITORIA (acciones sensibles: cierre de día, anulación) (D-F, D-G) ─────
+create table if not exists public.auditoria (
+  id           uuid primary key default gen_random_uuid(),
+  accion       text not null check (accion in ('CIERRE_DIA', 'ANULAR_ORDEN')),
+  usuario      text not null,   -- quién ejecutó la acción (perfiles.usuario)
+  detalle      text not null,   -- resumen legible (origen, total, motivo…)
+  creado_en    timestamptz not null default now()
+);
+
+create index if not exists ix_auditoria_creado on public.auditoria (creado_en desc);
 
 -- ============================================================================
 -- ROW LEVEL SECURITY
@@ -93,6 +123,8 @@ alter table public.items       enable row level security;
 alter table public.mesas       enable row level security;
 alter table public.ordenes     enable row level security;
 alter table public.orden_items enable row level security;
+alter table public.pagos       enable row level security;
+alter table public.auditoria   enable row level security;
 
 -- PERFILES: cada quien ve su perfil; el admin ve todos.
 drop policy if exists "perfiles_select" on public.perfiles;
@@ -130,9 +162,26 @@ create policy "orden_items_all" on public.orden_items for all
   using (auth.role() = 'authenticated')
   with check (auth.role() = 'authenticated');
 
+-- PAGOS: operables por cualquier autenticado (mozo cobra, admin también).
+drop policy if exists "pagos_all" on public.pagos;
+create policy "pagos_all" on public.pagos for all
+  using (auth.role() = 'authenticated')
+  with check (auth.role() = 'authenticated');
+
+-- AUDITORIA: cualquiera autenticado puede INSERTAR (deja su rastro), pero solo el
+-- ADMIN puede LEER el log. No se permite update/delete (registro inmutable).
+drop policy if exists "auditoria_insert" on public.auditoria;
+create policy "auditoria_insert" on public.auditoria for insert
+  with check (auth.role() = 'authenticated');
+
+drop policy if exists "auditoria_select_admin" on public.auditoria;
+create policy "auditoria_select_admin" on public.auditoria for select
+  using (public.rol_actual() = 'ADMIN');
+
 -- ============================================================================
 -- REALTIME (decisión D-C): el admin ve las órdenes actualizarse en vivo.
 -- ============================================================================
 alter publication supabase_realtime add table public.ordenes;
 alter publication supabase_realtime add table public.orden_items;
+alter publication supabase_realtime add table public.pagos;
 alter publication supabase_realtime add table public.mesas;

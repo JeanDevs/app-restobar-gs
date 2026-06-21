@@ -4,9 +4,12 @@ import type { TipoPago } from '../../types'
 
 interface ConfirmacionModalProps {
   mesaNumero: number
+  // Monto a cobrar al cerrar: total de la orden, o el saldo si hubo cobros parciales (D-E).
   total: number
   tipoPago: TipoPago
   busy: boolean
+  // true si la orden tenía cobros parciales: el monto es un saldo, no el total.
+  hayCobros?: boolean
   onConfirm: () => void
   onCancel: () => void
 }
@@ -16,6 +19,7 @@ export default function ConfirmacionModal({
   total,
   tipoPago,
   busy,
+  hayCobros = false,
   onConfirm,
   onCancel,
 }: ConfirmacionModalProps) {
@@ -28,8 +32,10 @@ export default function ConfirmacionModal({
           <span className="font-semibold">{etiquetaMesa(mesaNumero)}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-slate-500">Total</span>
-          <span className="font-semibold">{soles(total)}</span>
+          <span className="text-slate-500">{hayCobros ? 'Saldo a cobrar' : 'Total'}</span>
+          <span className="font-semibold">
+            {hayCobros && total === 0 ? 'Sin saldo pendiente' : soles(total)}
+          </span>
         </div>
         <div className="flex justify-between">
           <span className="text-slate-500">Pago</span>

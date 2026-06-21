@@ -6,12 +6,14 @@
 ## Estado
 
 - **📦 Proyecto:** `app-restobar-gs` — POS web de control de mesas para Restobar GS
-- **📍 Fase:** `3 · development` — **Fase 1 (app local con mock) COMPLETADA y verificada**
-- **✅ Último avance:** Scaffold completo React+Vite+TS+Tailwind. UI Mozo y Admin funcionando con
-  datos mock (22 ítems). Flujo end-to-end verificado en navegador (desktop + móvil 375px).
-  `npm run build` pasa (tsc --noEmit + vite build, 0 errores).
-- **🎯 Próxima tarea:** **Fase 2** — integrar Supabase (PostgreSQL + Auth + Realtime), GitHub y Vercel.
-- **⚠️ Bloqueadores:** confirmar si Jean ya tiene cuentas en Supabase / Vercel / GitHub (todas free).
+- **📍 Fase:** `3 · development` — Fase 1 completa; **Fase 2 EN STANDBY** (decisión de Jean 2026-06-21).
+- **✅ Último avance:** `supabaseClient.ts` implementado (swap del `DataClient`), `index.ts` selecciona
+  por `VITE_DATA_SOURCE`, `main.tsx` restaura sesión async, `.env.example` listo, git init + 1er commit.
+  En curso: sprint de mejoras M-04/M-07/M-10..M-13 (cobro parcial, anular, auditoría) sobre el mock.
+- **🎯 Próxima tarea:** terminar sprint de mejoras; luego reanudar Fase 2 (crear proyecto Supabase,
+  correr SQL, crear usuarios Auth, deploy Vercel vía MCP).
+- **⚠️ Standby Fase 2:** falta que Jean cree el proyecto Supabase y dé URL + anon key. GitHub: `gh`
+  instalado, pendiente `gh auth login` + `gh repo create`. Vercel: MCP conectado, listo para deploy.
 - **📝 Backlog de mejoras pendientes:** ver [`MEJORAS.md`](MEJORAS.md) (pagos PLIN/Tarjeta, venta en
   barra, permisos por mozo, cerrar día, pago parcial por ítem, nombre de comensal, etc.).
 
@@ -22,6 +24,13 @@
   + tabla `perfiles` para el rol. Se elimina la tabla `usuarios` custom de la spec.
 - **D-C** Persistencia inmediata: la orden se guarda como `ABIERTA` al instante (sobrevive refresh) + Realtime.
 - **D-D** Cada presentación de la carta es un ítem (ej. `Cerveza (1 und)`, `Cerveza (3 und)`).
+- **D-E** (2026-06-21) **Cobro parcial** = tabla `pagos` (monto + tipo_pago + ítems + quién/cuándo).
+  La orden sigue `ABIERTA` con **saldo pendiente** hasta que se salda; admite varios tipos de pago
+  por sesión. Finalizar crea el pago del saldo restante. (M-12, antes M-02).
+- **D-F** (2026-06-21) **Anular mesa con consumo** = solo con **clave de admin + motivo obligatorio**,
+  queda `estado='ANULADA'` + registro en `auditoria`. El mozo solo descarta mesas sin consumo. (M-13).
+- **D-G** (2026-06-21) **Cierre de día** exige **re-ingresar la clave del admin** (sin usuario nuevo)
+  y deja registro en `auditoria` (quién, cuándo, total). (M-11).
 - **Extra:** moneda **S/ (soles)**; la app es **mobile-first** además de laptop (mozo con celular).
 
 ## Carta (22 ítems sembrados)
@@ -48,6 +57,16 @@ npm install && npm run dev     # http://localhost:5173
 
 ## Changelog
 
+- **2026-06-21** — Fase 2 puesta en **standby**; implementado `supabaseClient.ts` (swap del `DataClient`,
+  cliente perezoso para no romper el modo mock), `index.ts` selecciona por `VITE_DATA_SOURCE`, `main.tsx`
+  restaura sesión async. `gh` instalado, git init + 1er commit. Pendiente: que Jean cree el proyecto Supabase.
+- **2026-06-21** — Sprint de mejoras M-04/M-07/M-10/M-11/M-12/M-13 (orquestado con 3 Executors en paralelo
+  sobre archivos sin solape; el core de datos lo hizo el orquestador). **Cobro parcial** (tabla `pagos` +
+  saldo, varios tipos de pago por mesa), **anular mesa** (clave admin + motivo + `ANULADA`), **cierre con
+  clave** + **auditoría** (pestaña admin), separar **Inka/Coca** (24 ítems), **orden actual arriba en móvil**,
+  permisos por mozo (light). Verificado end-to-end en navegador: orden S/20 → Yape 5 + Efectivo 15; anular
+  con clave mala rechazado; cierre reinicia "hoy" y registra auditoría. Build verde (127 módulos, 0 errores).
+  Decisiones D-E/D-F/D-G registradas. Pendiente: M-04 cruzado (Fase 2).
 - **2026-06-21** — Fase 1 completada: 37 archivos, app local navegable con mock, mobile-first,
   build verde, esquema Supabase listo en `supabase/`.
 - **2026-06-21** — Iteración UX: panel Mozo reordenado (Cantidad+Agregar arriba del buscador);

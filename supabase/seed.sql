@@ -7,15 +7,17 @@ insert into public.mesas (numero)
 select g from generate_series(1, 14) as g
 on conflict (numero) do nothing;
 
--- ── Carta (22 ítems: carta.md + cócteles) ───────────────────────────────────
+-- ── Carta (24 ítems: carta.md + cócteles) ───────────────────────────────────
 insert into public.items (nombre, precio, categoria) values
   ('Cerveza (1 und)',                  15,   'Cervezas'),
   ('Cerveza (3 und)',                  40,   'Cervezas'),
   ('Cerveza (5 und)',                  65,   'Cervezas'),
   ('Cerveza 3 Cruces (1 und)',          8,   'Cervezas'),
   ('Cerveza 3 Cruces (2 und)',         15,   'Cervezas'),
-  ('Inka Cola / Coca Cola (500 mL)',    5,   'Gaseosas'),
-  ('Inka Cola / Coca Cola (1.5 L)',    14,   'Gaseosas'),
+  ('Inka Cola (500 mL)',                5,   'Gaseosas'),
+  ('Coca Cola (500 mL)',                5,   'Gaseosas'),
+  ('Inka Cola (1.5 L)',                14,   'Gaseosas'),
+  ('Coca Cola (1.5 L)',                14,   'Gaseosas'),
   ('Agua Cielo (625 mL)',               3,   'Aguas'),
   ('San Mateo (625 mL)',                3.5, 'Aguas'),
   ('San Luis (625 mL)',                 3.5, 'Aguas'),

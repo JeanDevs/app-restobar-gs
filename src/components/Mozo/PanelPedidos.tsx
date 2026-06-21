@@ -5,10 +5,13 @@ import CantidadInput from './CantidadInput'
 import OrdenActual from './OrdenActual'
 import FinalizarModal from './FinalizarModal'
 import ConfirmacionModal from './ConfirmacionModal'
+import CobroParcialModal from './CobroParcialModal'
+import AnularModal from './AnularModal'
 import CollapsibleCard from '../Shared/CollapsibleCard'
 import { useStore } from '../../store/useStore'
 import { useOrdenes } from '../../hooks/useOrdenes'
 import { soles, etiquetaMesa } from '../../lib/format'
+import { saldoPendiente } from '../../types'
 import type { Item, TipoPago } from '../../types'
 
 interface Linea {
@@ -21,12 +24,15 @@ export default function PanelPedidos() {
   const mesaActiva = useStore((s) => s.mesaActiva)
   const setMesaActiva = useStore((s) => s.setMesaActiva)
   const pushToast = useStore((s) => s.pushToast)
+  const sesion = useStore((s) => s.sesion)
   const {
     orden,
     agregarItems,
     quitarItem,
     setComensal: guardarComensal,
     finalizarOrden,
+    cobrarParcial,
+    anular,
   } = useOrdenes(mesaActiva)
 
   // "Carrito" de selección múltiple: se arma aquí y se manda a la orden de una vez.
@@ -35,6 +41,16 @@ export default function PanelPedidos() {
   const [showFinalizar, setShowFinalizar] = useState(false)
   const [tipoPago, setTipoPago] = useState<TipoPago | null>(null)
   const [busy, setBusy] = useState(false)
+  const [showCobroParcial, setShowCobroParcial] = useState(false)
+  const [showAnular, setShowAnular] = useState(false)
+  const [anulando, setAnulando] = useState(false)
+
+  // M-04 (light): un MOZO no opera la caja de una mesa tomada por otro mozo.
+  // El ADMIN nunca se bloquea. Agregar ítems sí se permite.
+  const bloqueado =
+    sesion?.rol === 'MOZO' &&
+    !!orden?.mozo &&
+    orden.mozo !== sesion.usuario
 
   // Al cambiar de mesa, descartamos el borrador no confirmado.
   useEffect(() => {
@@ -115,6 +131,33 @@ export default function PanelPedidos() {
     }
   }
 
+  // T3: cobro parcial. Cobra los ítems seleccionados; la orden sigue abierta.
+  async function handleCobroParcial(ids: string[], tipo: TipoPago) {
+    try {
+      const actualizada = await cobrarParcial(ids, tipo)
+      const monto = actualizada ? actualizada.pagado - (orden?.pagado ?? 0) : 0
+      pushToast(`Cobrado: ${soles(monto)}`, 'ok')
+      setShowCobroParcial(false)
+    } catch (e) {
+      pushToast(e instanceof Error ? e.message : 'No se pudo cobrar', 'error')
+    }
+  }
+
+  // T5: anular mesa. En error (clave incorrecta) se deja el modal abierto.
+  async function handleAnular(motivo: string, clave: string) {
+    setAnulando(true)
+    try {
+      await anular(motivo, clave)
+      pushToast('Mesa anulada', 'ok')
+      setShowAnular(false)
+      setMesaActiva(null)
+    } catch (e) {
+      pushToast(e instanceof Error ? e.message : 'No se pudo anular', 'error')
+    } finally {
+      setAnulando(false)
+    }
+  }
+
   return (
     <>
       <MesaSelector />
@@ -141,7 +184,9 @@ export default function PanelPedidos() {
           </div>
 
           <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-2">
-            {/* Módulo agregar (colapsable): botón ARRIBA (M-09), luego carrito y catálogo */}
+            {/* Módulo agregar (colapsable): botón ARRIBA (M-09), luego carrito y catálogo.
+                M-10: en móvil va DEBAJO de "Orden actual" (order-last); en desktop, columna izquierda. */}
+            <div className="order-last min-w-0 md:order-none">
             <CollapsibleCard
               titulo="Agregar ítem"
               derecha={
@@ -204,15 +249,22 @@ export default function PanelPedidos() {
                 <ItemSearcher onAdd={addBorrador} enLista={enLista} />
               </div>
             </CollapsibleCard>
+            </div>
 
-            {/* Orden actual (colapsable) */}
-            <OrdenActual
-              orden={orden}
-              mesaNumero={mesaActiva}
-              onQuitar={handleQuitar}
-              onGuardar={handleGuardar}
-              onFinalizar={() => setShowFinalizar(true)}
-            />
+            {/* Orden actual (colapsable). M-10: en móvil va ARRIBA (order-first). */}
+            <div className="order-first min-w-0 md:order-none">
+              <OrdenActual
+                orden={orden}
+                mesaNumero={mesaActiva}
+                onQuitar={handleQuitar}
+                onGuardar={handleGuardar}
+                onFinalizar={() => setShowFinalizar(true)}
+                onCobroParcial={() => setShowCobroParcial(true)}
+                onAnular={() => setShowAnular(true)}
+                bloqueado={bloqueado}
+                mozoDueno={orden?.mozo}
+              />
+            </div>
           </div>
         </>
       )}
@@ -226,15 +278,35 @@ export default function PanelPedidos() {
         />
       )}
 
-      {/* Modal 2: doble confirmación */}
+      {/* Modal 2: doble confirmación. Con cobros parciales muestra el SALDO (T4). */}
       {showFinalizar && orden && tipoPago && (
         <ConfirmacionModal
           mesaNumero={orden.mesa_numero}
-          total={orden.total}
+          total={orden.pagado > 0 ? saldoPendiente(orden) : orden.total}
+          hayCobros={orden.pagado > 0}
           tipoPago={tipoPago}
           busy={busy}
           onConfirm={handleCierre}
           onCancel={() => setTipoPago(null)}
+        />
+      )}
+
+      {/* Cobro parcial (D-E) */}
+      {showCobroParcial && orden && (
+        <CobroParcialModal
+          orden={orden}
+          onConfirm={handleCobroParcial}
+          onCancel={() => setShowCobroParcial(false)}
+        />
+      )}
+
+      {/* Anular mesa (D-F) */}
+      {showAnular && orden && (
+        <AnularModal
+          orden={orden}
+          busy={anulando}
+          onConfirm={handleAnular}
+          onCancel={() => setShowAnular(false)}
         />
       )}
     </>
