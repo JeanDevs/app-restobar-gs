@@ -1,0 +1,349 @@
+import { createClient } from '@supabase/supabase-js'
+import type { DataClient, LineaPedido, NuevoItem, CierreDia } from './dataClient'
+import type { Item, Mesa, Orden, OrdenItem, Perfil, Rol, TipoPago } from '../types'
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL!,
+  import.meta.env.VITE_SUPABASE_ANON_KEY!,
+)
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Row = Record<string, any>
+
+function mapItem(r: Row): Item {
+  return {
+    id: r.id,
+    nombre: r.nombre,
+    precio: Number(r.precio),
+    categoria: r.categoria,
+    activo: r.activo,
+    creado_en: r.creado_en,
+  }
+}
+
+function mapOrden(r: Row): Orden {
+  const items: OrdenItem[] = ((r.orden_items as Row[]) ?? []).map((oi) => ({
+    id: oi.id,
+    orden_id: oi.orden_id,
+    item_id: oi.item_id,
+    item_nombre: oi.item_nombre,
+    item_precio: Number(oi.item_precio),
+    cantidad: oi.cantidad,
+    subtotal: Number(oi.subtotal),
+  }))
+  return {
+    id: r.id,
+    mesa_numero: r.mesa_numero,
+    mesa_id: r.mesa_id ?? '',
+    total: Number(r.total),
+    cantidad: r.cantidad,
+    tipo_pago: r.tipo_pago ?? null,
+    estado: r.estado,
+    total_final: r.total_final !== null && r.total_final !== undefined ? Number(r.total_final) : null,
+    mozo: r.mozo ?? null,
+    comensal: r.comensal ?? null,
+    dia_cerrado: r.dia_cerrado ?? false,
+    creado_en: r.creado_en,
+    cerrado_en: r.cerrado_en ?? null,
+    items,
+  }
+}
+
+function err(msg: string | undefined): never {
+  throw new Error(msg ?? 'Error desconocido')
+}
+
+class SupabaseDataClient implements DataClient {
+  private sesionCache: Perfil | null = null
+  private listeners = new Set<() => void>()
+  // Single shared channel — multiple subscribe() calls add to the same Set.
+  private channel: ReturnType<typeof supabase.channel> | null = null
+
+  private emit() {
+    this.listeners.forEach((cb) => cb())
+  }
+
+  private ensureChannel() {
+    if (this.channel) return
+    this.channel = supabase
+      .channel('restobar-gs')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'ordenes' }, () => this.emit())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orden_items' }, () => this.emit())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'mesas' }, () => this.emit())
+      .subscribe()
+  }
+
+  // ── Auth ──────────────────────────────────────────────────────────────────
+
+  async login(usuario: string, contrasena: string): Promise<Perfil> {
+    const email = `${usuario}@restobar-gs.local`
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password: contrasena })
+    if (error || !data.user) err('Usuario o contraseña incorrectos')
+
+    const { data: p, error: pe } = await supabase
+      .from('perfiles')
+      .select('id, usuario, rol')
+      .eq('id', data.user.id)
+      .single()
+    if (pe || !p) err('Perfil no encontrado. Contacta al administrador.')
+
+    this.sesionCache = { id: p.id, usuario: p.usuario, rol: p.rol as Rol }
+    return this.sesionCache
+  }
+
+  async logout(): Promise<void> {
+    await supabase.auth.signOut()
+    this.sesionCache = null
+  }
+
+  getSesion(): Perfil | null {
+    return this.sesionCache
+  }
+
+  // Restaura la sesión de Supabase guardada en localStorage (llamado desde main.tsx).
+  async restoreSession(): Promise<Perfil | null> {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.user) return null
+    const { data: p } = await supabase
+      .from('perfiles')
+      .select('id, usuario, rol')
+      .eq('id', session.user.id)
+      .single()
+    if (!p) return null
+    this.sesionCache = { id: p.id, usuario: p.usuario, rol: p.rol as Rol }
+    return this.sesionCache
+  }
+
+  // ── Items ─────────────────────────────────────────────────────────────────
+
+  async getItems(): Promise<Item[]> {
+    const { data, error } = await supabase
+      .from('items')
+      .select('*')
+      .eq('activo', true)
+      .order('categoria')
+      .order('nombre')
+    if (error) err(error.message)
+    return (data ?? []).map(mapItem)
+  }
+
+  async createItem(d: NuevoItem): Promise<Item> {
+    const { data, error } = await supabase
+      .from('items')
+      .insert({ nombre: d.nombre, precio: d.precio, categoria: d.categoria })
+      .select()
+      .single()
+    if (error) err(error.message)
+    return mapItem(data)
+  }
+
+  async updateItem(id: string, d: Partial<NuevoItem>): Promise<Item> {
+    const { data, error } = await supabase.from('items').update(d).eq('id', id).select().single()
+    if (error) err(error.message)
+    return mapItem(data)
+  }
+
+  async deleteItem(id: string): Promise<void> {
+    const { error } = await supabase.from('items').update({ activo: false }).eq('id', id)
+    if (error) err(error.message)
+  }
+
+  // ── Mesas ─────────────────────────────────────────────────────────────────
+
+  async getMesas(): Promise<Mesa[]> {
+    const { data, error } = await supabase.from('mesas').select('*').order('numero')
+    if (error) err(error.message)
+    return (data ?? []).map((m) => ({ id: m.id, numero: m.numero, estado: m.estado }))
+  }
+
+  // ── Órdenes ───────────────────────────────────────────────────────────────
+
+  async getOrdenAbierta(mesaNumero: number): Promise<Orden | null> {
+    const { data, error } = await supabase
+      .from('ordenes')
+      .select('*, orden_items(*)')
+      .eq('mesa_numero', mesaNumero)
+      .eq('estado', 'ABIERTA')
+      .maybeSingle()
+    if (error) err(error.message)
+    return data ? mapOrden(data) : null
+  }
+
+  async agregarItem(mesaNumero: number, itemId: string, cantidad: number): Promise<Orden> {
+    return this.agregarItems(mesaNumero, [{ itemId, cantidad }])
+  }
+
+  async agregarItems(mesaNumero: number, lineas: LineaPedido[]): Promise<Orden> {
+    const validas = lineas.filter((l) => l.cantidad >= 1)
+    if (validas.length === 0) err('No hay ítems por agregar')
+
+    // 1. Obtener o crear la orden abierta.
+    let { data: ordenRow, error: getErr } = await supabase
+      .from('ordenes')
+      .select('*, orden_items(*)')
+      .eq('mesa_numero', mesaNumero)
+      .eq('estado', 'ABIERTA')
+      .maybeSingle()
+    if (getErr) err(getErr.message)
+
+    if (!ordenRow) {
+      let mesaId: string | null = null
+      if (mesaNumero > 0) {
+        const { data: mesa } = await supabase
+          .from('mesas').select('id').eq('numero', mesaNumero).single()
+        mesaId = mesa?.id ?? null
+        if (mesaId) {
+          await supabase.from('mesas').update({ estado: 'OCUPADA' }).eq('id', mesaId)
+        }
+      }
+      const { data: nueva, error: newErr } = await supabase
+        .from('ordenes')
+        .insert({ mesa_numero: mesaNumero, mesa_id: mesaId, mozo: this.sesionCache?.usuario ?? null })
+        .select('*, orden_items(*)')
+        .single()
+      if (newErr) err(newErr.message)
+      ordenRow = nueva
+    }
+
+    // 2. Obtener snapshots de nombre/precio de los ítems solicitados.
+    const { data: itemsData, error: itemsErr } = await supabase
+      .from('items').select('id, nombre, precio').in('id', validas.map((l) => l.itemId))
+    if (itemsErr) err(itemsErr.message)
+    const itemsMap = new Map((itemsData ?? []).map((i) => [i.id, i]))
+    const existentes: Row[] = ordenRow.orden_items ?? []
+
+    // 3. Upsert de cada línea.
+    for (const linea of validas) {
+      const item = itemsMap.get(linea.itemId)
+      if (!item) continue
+      const existe = existentes.find((oi) => oi.item_id === linea.itemId)
+      if (existe) {
+        const nuevaCant = existe.cantidad + linea.cantidad
+        await supabase.from('orden_items').update({
+          cantidad: nuevaCant,
+          subtotal: nuevaCant * Number(item.precio),
+        }).eq('id', existe.id)
+      } else {
+        await supabase.from('orden_items').insert({
+          orden_id: ordenRow.id,
+          item_id: item.id,
+          item_nombre: item.nombre,
+          item_precio: Number(item.precio),
+          cantidad: linea.cantidad,
+          subtotal: Number(item.precio) * linea.cantidad,
+        })
+      }
+    }
+
+    // 4. Recalcular totales en la orden.
+    return this._recalcularOrden(ordenRow.id)
+  }
+
+  async quitarItem(ordenItemId: string): Promise<Orden | null> {
+    const { data: oi } = await supabase
+      .from('orden_items').select('orden_id').eq('id', ordenItemId).single()
+    if (!oi) return null
+
+    await supabase.from('orden_items').delete().eq('id', ordenItemId)
+
+    const { data: restantes } = await supabase
+      .from('orden_items').select('cantidad, subtotal').eq('orden_id', oi.orden_id)
+
+    if (!restantes || restantes.length === 0) {
+      const { data: o } = await supabase
+        .from('ordenes').select('mesa_id').eq('id', oi.orden_id).single()
+      await supabase.from('ordenes').delete().eq('id', oi.orden_id)
+      if (o?.mesa_id) await supabase.from('mesas').update({ estado: 'VACIA' }).eq('id', o.mesa_id)
+      return null
+    }
+
+    return this._recalcularOrden(oi.orden_id)
+  }
+
+  async setComensal(mesaNumero: number, nombre: string): Promise<Orden | null> {
+    const { data: o } = await supabase
+      .from('ordenes').select('id').eq('mesa_numero', mesaNumero).eq('estado', 'ABIERTA').maybeSingle()
+    if (!o) return null
+    const { error } = await supabase
+      .from('ordenes').update({ comensal: nombre.trim() || null }).eq('id', o.id)
+    if (error) err(error.message)
+    return this._fetchOrden(o.id)
+  }
+
+  async finalizarOrden(ordenId: string, tipoPago: TipoPago): Promise<void> {
+    const { data: o, error: getErr } = await supabase
+      .from('ordenes').select('mesa_id, total').eq('id', ordenId).single()
+    if (getErr || !o) err('Orden no encontrada')
+    const { error } = await supabase.from('ordenes').update({
+      estado: 'CERRADA',
+      tipo_pago: tipoPago,
+      total_final: o.total,
+      cerrado_en: new Date().toISOString(),
+    }).eq('id', ordenId)
+    if (error) err(error.message)
+    if (o.mesa_id) {
+      await supabase.from('mesas').update({ estado: 'VACIA' }).eq('id', o.mesa_id)
+    }
+  }
+
+  async getOrdenesCerradas(): Promise<Orden[]> {
+    const { data, error } = await supabase
+      .from('ordenes')
+      .select('*, orden_items(*)')
+      .in('estado', ['CERRADA', 'PAGADA'])
+      .order('cerrado_en', { ascending: false })
+    if (error) err(error.message)
+    return (data ?? []).map(mapOrden)
+  }
+
+  async cerrarDia(): Promise<CierreDia> {
+    const now = new Date()
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()
+    const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).toISOString()
+
+    const { data, error } = await supabase
+      .from('ordenes')
+      .select('id, total_final')
+      .in('estado', ['CERRADA', 'PAGADA'])
+      .eq('dia_cerrado', false)
+      .gte('cerrado_en', startOfDay)
+      .lt('cerrado_en', endOfDay)
+    if (error) err(error.message)
+    if (!data || data.length === 0) return { fecha: now.toISOString(), total: 0, conteo: 0 }
+
+    const total = data.reduce((s, o) => s + Number(o.total_final ?? 0), 0)
+    await supabase.from('ordenes').update({ dia_cerrado: true }).in('id', data.map((o) => o.id))
+    return { fecha: now.toISOString(), total, conteo: data.length }
+  }
+
+  // ── Realtime ──────────────────────────────────────────────────────────────
+
+  subscribe(callback: () => void): () => void {
+    this.ensureChannel()
+    this.listeners.add(callback)
+    return () => this.listeners.delete(callback)
+  }
+
+  // ── Privados ──────────────────────────────────────────────────────────────
+
+  private async _recalcularOrden(ordenId: string): Promise<Orden> {
+    const { data: items } = await supabase
+      .from('orden_items').select('cantidad, subtotal').eq('orden_id', ordenId)
+    const total = (items ?? []).reduce((s, oi) => s + Number(oi.subtotal), 0)
+    const cantidad = (items ?? []).reduce((s, oi) => s + oi.cantidad, 0)
+    const { error } = await supabase.from('ordenes').update({ total, cantidad }).eq('id', ordenId)
+    if (error) err(error.message)
+    return this._fetchOrden(ordenId)
+  }
+
+  private async _fetchOrden(ordenId: string): Promise<Orden> {
+    const { data, error } = await supabase
+      .from('ordenes').select('*, orden_items(*)').eq('id', ordenId).single()
+    if (error) err(error.message)
+    return mapOrden(data)
+  }
+}
+
+export function createSupabaseClient(): DataClient & { restoreSession(): Promise<Perfil | null> } {
+  return new SupabaseDataClient()
+}

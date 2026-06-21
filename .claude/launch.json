@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "restobar-gs",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "C:/Users/JeanTS/Documents/PROYECTOS_APPS/CARTA_DIGITAL/APP-RESTOBAR-GS"],
+      "port": 5173
+    }
+  ]
+}
