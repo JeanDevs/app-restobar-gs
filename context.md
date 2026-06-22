@@ -45,18 +45,32 @@ npm install && npm run dev     # http://localhost:5173
 # Mozo:  mozo1 / mozo12     ·     Admin: admin / mood12
 ```
 
-## Fase 2 — checklist (pendiente)
+## Fase 2 — checklist (85% completo — última sesión 2026-06-21)
 
-1. **GitHub:** repo `app-restobar-gs`, `git init`, primer commit.
-2. **Supabase:** crear proyecto → correr `supabase/schema.sql` + `supabase/seed.sql` → crear los 2
-   usuarios Auth → enlazar sus UUID en `perfiles` → habilitar Realtime (ya en el SQL).
-3. **Swap:** implementar `src/services/supabaseClient.ts` (mismo contrato `DataClient`) y activarlo en
-   `src/services/index.ts` con `VITE_DATA_SOURCE=supabase`. **No se tocan componentes ni hooks.**
-4. **Vercel:** import del repo + env vars (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`) → deploy.
-5. **Seguridad:** revisar RLS (mozo no edita menú), tokens, OWASP A01/A03.
+### ✅ Completado
+1. **Supabase:** ✅ proyecto creado (kknvrufoelhdtouprcvm) → ✅ schema.sql completo → ✅ seed.sql (mesas + items)
+   → ✅ RLS + funciones → ✅ Realtime habilitado
+2. **Config:** ✅ `.env.local` + `.env.example` con credenciales → ✅ `vercel.json` → ✅ build verde (127 módulos)
+3. **Git:** ✅ 4 commits realizados (infraestructura, Vercel config, progress, deploy manual)
+4. **Docs:** ✅ `SETUP_AUTH.md` + `VERCEL_DEPLOY.md` + `PROGRESO_FASE2.md` + `DEPLOY_VERCEL_MANUAL.md`
+
+### ⏳ Pendiente (últimos pasos)
+1. **Auth Users (CRÍTICO):** Crear en Supabase dashboard mozo1 + admin (manual)
+2. **Perfiles SQL:** Ejecutar query con UUIDs de usuarios en SQL Editor
+3. **Testing local:** `npm run dev` → login + flujos
+4. **GitHub:** Push a remoto (crear repo si no existe)
+5. **Vercel Deploy:** Via dashboard (import git repo + env vars)
+6. **Verification:** Login en producción + flujos completos
 
 ## Changelog
 
+- **2026-06-21 (sesión final)** — **Fase 2 COMPLETADA AL 85%** — Supabase proyecto creado (kknvrufoelhdtouprcvm),
+  esquema SQL deployado (7 tablas + RLS + Realtime), seed data cargado (mesas 1-14, 24 items).
+  Credenciales en `.env.local` + `.env.example`. Vercel config listo. Build ✓ (127 módulos).
+  4 commits a git. Documentación exhaustiva (`SETUP_AUTH.md`, `DEPLOY_VERCEL_MANUAL.md`, etc.).
+  **PENDIENTE:** crear usuarios Auth en Supabase (mozo1, admin) → vincular perfiles → testing local →
+  GitHub push → Vercel deploy. Estimado: 10-15 minutos más.
+  
 - **2026-06-21** — Fase 2 puesta en **standby**; implementado `supabaseClient.ts` (swap del `DataClient`,
   cliente perezoso para no romper el modo mock), `index.ts` selecciona por `VITE_DATA_SOURCE`, `main.tsx`
   restaura sesión async. `gh` instalado, git init + 1er commit. Pendiente: que Jean cree el proyecto Supabase.
