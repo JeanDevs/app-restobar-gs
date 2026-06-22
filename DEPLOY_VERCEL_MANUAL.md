@@ -12,7 +12,7 @@
 ### Paso 1: Crear Usuarios en Supabase Auth (CRÍTICO)
 
 **URL:** https://supabase.com/dashboard/projects/kknvrufoelhdtouprcvm
-
+https://kknvrufoelhdtouprcvm.supabase.co
 1. Haz clic en **"Authentication"** en el menú lateral
 2. Haz clic en **"Users"**
 3. Haz clic en **"Invite user"** o **"Add user"**
@@ -77,7 +77,7 @@ npm run dev
 
 **Opción B: Si ya tienes el repo en GitHub**
 1. Ve a tu repo en GitHub
-2. Copia la URL HTTPS (ej: `https://github.com/tu-usuario/app-restobar-gs.git`)
+2. Copia la URL HTTPS:https://github.com/JeanDevs/app-restobar-gs.git
 
 ### Paso 5: Pushear Código a GitHub
 
@@ -85,7 +85,7 @@ npm run dev
 # En la carpeta del proyecto
 
 # Si es la PRIMERA VEZ (no tienes remoto):
-git remote add origin https://github.com/TU_USUARIO/app-restobar-gs.git
+git remote add origin https://github.com/JeanDevs/app-restobar-gs.git
 git branch -M main
 git push -u origin main
 

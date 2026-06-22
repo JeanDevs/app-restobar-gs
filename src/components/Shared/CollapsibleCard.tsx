@@ -24,13 +24,13 @@ export default function CollapsibleCard({
         aria-expanded={open}
         className="flex min-h-[48px] w-full items-center justify-between gap-2 px-4 py-3 text-left"
       >
-        <span className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+        <span className="text-sm font-semibold uppercase tracking-wide text-cacao-500">
           {titulo}
         </span>
         <span className="flex items-center gap-3">
           {derecha}
           <svg
-            className={`h-5 w-5 shrink-0 text-slate-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+            className={`h-5 w-5 shrink-0 text-cacao-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
             viewBox="0 0 20 20"
             fill="currentColor"
             aria-hidden="true"

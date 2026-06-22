@@ -20,7 +20,7 @@ export default function Modal({ titulo, children, onClose }: ModalProps) {
         role="dialog"
         aria-modal="true"
       >
-        <h2 className="mb-4 text-lg font-bold text-slate-800">{titulo}</h2>
+        <h2 className="mb-4 text-lg font-bold text-cacao-800">{titulo}</h2>
         {children}
       </div>
     </div>

@@ -11,7 +11,7 @@ export default function MozoLayout() {
   const tab = (v: Vista) =>
     [
       'flex-1 rounded-lg px-3 py-2.5 text-center text-sm font-semibold transition',
-      vista === v ? 'bg-marca-500 text-white shadow' : 'text-slate-600 hover:bg-slate-200',
+      vista === v ? 'bg-marca-500 text-white shadow' : 'text-cacao-600 hover:bg-cacao-200',
     ].join(' ')
 
   return (
@@ -19,7 +19,7 @@ export default function MozoLayout() {
       <Header titulo="Mis Pedidos" />
       <main className="mx-auto max-w-4xl space-y-4 p-3 sm:p-4">
         {/* Conmutador de vista */}
-        <div className="flex gap-1 rounded-xl bg-slate-200/60 p-1">
+        <div className="flex gap-1 rounded-xl bg-cacao-200/60 p-1">
           <button className={tab('pedidos')} onClick={() => setVista('pedidos')}>
             🍽️ Pedidos
           </button>

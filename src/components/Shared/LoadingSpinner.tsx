@@ -4,8 +4,8 @@ interface LoadingSpinnerProps {
 
 export default function LoadingSpinner({ texto }: LoadingSpinnerProps) {
   return (
-    <div className="flex items-center justify-center gap-3 py-8 text-slate-500">
-      <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-300 border-t-marca-500" />
+    <div className="flex items-center justify-center gap-3 py-8 text-cacao-500">
+      <span className="h-5 w-5 animate-spin rounded-full border-2 border-cacao-300 border-t-marca-500" />
       {texto && <span className="text-sm">{texto}</span>}
     </div>
   )

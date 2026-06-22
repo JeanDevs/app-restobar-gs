@@ -66,8 +66,8 @@ export default function MenuManager() {
 
   return (
     <div className="card overflow-hidden">
-      <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
-        <h2 className="font-bold text-slate-800">Gestionar menú</h2>
+      <div className="flex items-center justify-between border-b border-cacao-200 px-4 py-3">
+        <h2 className="font-bold text-cacao-800">Gestionar menú</h2>
         <button className="btn-primary" onClick={abrirNuevo}>
           + Agregar
         </button>
@@ -76,7 +76,7 @@ export default function MenuManager() {
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+            <tr className="border-b border-cacao-200 bg-cacao-50 text-left text-xs uppercase tracking-wide text-cacao-500">
               <th className="px-4 py-2">Nombre</th>
               <th className="px-4 py-2">Categoría</th>
               <th className="px-4 py-2 text-right">Precio</th>
@@ -85,20 +85,20 @@ export default function MenuManager() {
           </thead>
           <tbody>
             {items.map((it) => (
-              <tr key={it.id} className="border-b border-slate-100 last:border-b-0">
-                <td className="px-4 py-2 font-medium text-slate-800">{it.nombre}</td>
-                <td className="px-4 py-2 text-slate-500">{it.categoria}</td>
+              <tr key={it.id} className="border-b border-cacao-100 last:border-b-0">
+                <td className="px-4 py-2 font-medium text-cacao-800">{it.nombre}</td>
+                <td className="px-4 py-2 text-cacao-500">{it.categoria}</td>
                 <td className="px-4 py-2 text-right font-semibold">{soles(it.precio)}</td>
                 <td className="px-4 py-2 text-right">
                   <button
-                    className="mr-2 text-slate-500 hover:text-marca-600"
+                    className="mr-2 text-cacao-500 hover:text-marca-600"
                     onClick={() => abrirEditar(it)}
                     title="Editar"
                   >
                     ✏️
                   </button>
                   <button
-                    className="text-slate-500 hover:text-red-600"
+                    className="text-cacao-500 hover:text-red-600"
                     onClick={() => setPorEliminar(it)}
                     title="Eliminar"
                   >
@@ -109,7 +109,7 @@ export default function MenuManager() {
             ))}
             {items.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-slate-400">
+                <td colSpan={4} className="px-4 py-8 text-center text-cacao-400">
                   Sin ítems.
                 </td>
               </tr>
@@ -174,7 +174,7 @@ export default function MenuManager() {
       {/* Confirmación eliminar */}
       {porEliminar && (
         <Modal titulo="¿Eliminar ítem?" onClose={() => setPorEliminar(null)}>
-          <p className="mb-5 text-sm text-slate-600">
+          <p className="mb-5 text-sm text-cacao-600">
             Se ocultará <span className="font-semibold">{porEliminar.nombre}</span> del menú.
           </p>
           <div className="flex gap-2">

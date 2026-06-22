@@ -52,7 +52,7 @@ export default function CobroParcialModal({
               'flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 text-sm transition',
               seleccion.has(it.id)
                 ? 'border-marca-500 bg-marca-50'
-                : 'border-slate-200 hover:bg-slate-50',
+                : 'border-cacao-200 hover:bg-cacao-50',
             ].join(' ')}
           >
             <input
@@ -61,20 +61,20 @@ export default function CobroParcialModal({
               checked={seleccion.has(it.id)}
               onChange={() => toggle(it.id)}
             />
-            <span className="min-w-0 flex-1 truncate font-medium text-slate-700">
+            <span className="min-w-0 flex-1 truncate font-medium text-cacao-700">
               {it.item_nombre}
-              <span className="text-slate-400">
+              <span className="text-cacao-400">
                 {' '}
                 · {it.cantidad} × {soles(it.item_precio)}
               </span>
             </span>
-            <span className="font-semibold text-slate-700">{soles(it.subtotal)}</span>
+            <span className="font-semibold text-cacao-700">{soles(it.subtotal)}</span>
           </label>
         ))}
       </div>
 
-      <div className="mb-4 flex justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm">
-        <span className="text-slate-500">Subtotal seleccionado</span>
+      <div className="mb-4 flex justify-between rounded-lg bg-cacao-50 px-3 py-2 text-sm">
+        <span className="text-cacao-500">Subtotal seleccionado</span>
         <span className="font-semibold">{soles(subtotalSel)}</span>
       </div>
 
@@ -87,7 +87,7 @@ export default function CobroParcialModal({
               'flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 text-sm transition',
               tipo === t
                 ? 'border-marca-500 bg-marca-50'
-                : 'border-slate-200 hover:bg-slate-50',
+                : 'border-cacao-200 hover:bg-cacao-50',
             ].join(' ')}
           >
             <input
@@ -97,7 +97,7 @@ export default function CobroParcialModal({
               checked={tipo === t}
               onChange={() => setTipo(t)}
             />
-            <span className="font-medium text-slate-700">{t}</span>
+            <span className="font-medium text-cacao-700">{t}</span>
           </label>
         ))}
       </div>

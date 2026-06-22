@@ -5,7 +5,7 @@ import type { Toast } from '../../store/useStore'
 const estilos: Record<Toast['tipo'], string> = {
   ok: 'bg-emerald-600',
   error: 'bg-red-600',
-  info: 'bg-slate-800',
+  info: 'bg-cacao-800',
 }
 
 function ToastItem({ toast }: { toast: Toast }) {

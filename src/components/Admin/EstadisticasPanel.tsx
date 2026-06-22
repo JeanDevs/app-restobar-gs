@@ -5,8 +5,8 @@ import { TIPOS_PAGO } from '../../types'
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="card p-4">
-      <p className="text-xs uppercase tracking-wide text-slate-400">{label}</p>
-      <p className="mt-1 text-2xl font-extrabold text-slate-800">{value}</p>
+      <p className="text-xs uppercase tracking-wide text-cacao-400">{label}</p>
+      <p className="mt-1 text-2xl font-extrabold text-cacao-800">{value}</p>
     </div>
   )
 }
@@ -23,7 +23,7 @@ export default function EstadisticasPanel() {
       </div>
 
       <div className="card p-4">
-        <p className="mb-3 text-sm font-semibold text-slate-600">Por tipo de pago (hoy)</p>
+        <p className="mb-3 text-sm font-semibold text-cacao-600">Por tipo de pago (hoy)</p>
         <div className="space-y-2">
           {TIPOS_PAGO.map((t) => {
             const monto = porTipo[t]
@@ -31,12 +31,12 @@ export default function EstadisticasPanel() {
             return (
               <div key={t}>
                 <div className="mb-1 flex justify-between text-sm">
-                  <span className="text-slate-600">{t}</span>
-                  <span className="font-medium text-slate-700">
+                  <span className="text-cacao-600">{t}</span>
+                  <span className="font-medium text-cacao-700">
                     {soles(monto)} · {pct}%
                   </span>
                 </div>
-                <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
+                <div className="h-2 w-full overflow-hidden rounded-full bg-cacao-100">
                   <div
                     className="h-full rounded-full bg-marca-500 transition-all"
                     style={{ width: `${pct}%` }}

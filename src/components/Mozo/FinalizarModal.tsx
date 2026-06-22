@@ -23,25 +23,25 @@ export default function FinalizarModal({
 
   return (
     <Modal titulo="¿Finalizar pedido?" onClose={onCancel}>
-      <div className="mb-4 rounded-lg bg-slate-50 px-3 py-2 text-sm">
+      <div className="mb-4 rounded-lg bg-cacao-50 px-3 py-2 text-sm">
         <div className="flex justify-between">
-          <span className="text-slate-500">Origen</span>
+          <span className="text-cacao-500">Origen</span>
           <span className="font-semibold">{etiquetaMesa(orden.mesa_numero)}</span>
         </div>
         {orden.comensal && (
           <div className="flex justify-between">
-            <span className="text-slate-500">Comensal</span>
+            <span className="text-cacao-500">Comensal</span>
             <span className="font-semibold">{orden.comensal}</span>
           </div>
         )}
         {hayCobros && (
           <div className="flex justify-between">
-            <span className="text-slate-500">Pagado</span>
+            <span className="text-cacao-500">Pagado</span>
             <span className="font-semibold text-emerald-600">{soles(orden.pagado)}</span>
           </div>
         )}
         <div className="flex justify-between">
-          <span className="text-slate-500">{hayCobros ? 'Saldo a cobrar' : 'Total'}</span>
+          <span className="text-cacao-500">{hayCobros ? 'Saldo a cobrar' : 'Total'}</span>
           <span className="font-semibold">
             {hayCobros && saldo === 0 ? 'Sin saldo pendiente' : soles(hayCobros ? saldo : orden.total)}
           </span>
@@ -57,7 +57,7 @@ export default function FinalizarModal({
               'flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 text-sm transition',
               tipo === t
                 ? 'border-marca-500 bg-marca-50'
-                : 'border-slate-200 hover:bg-slate-50',
+                : 'border-cacao-200 hover:bg-cacao-50',
             ].join(' ')}
           >
             <input
@@ -67,7 +67,7 @@ export default function FinalizarModal({
               checked={tipo === t}
               onChange={() => setTipo(t)}
             />
-            <span className="font-medium text-slate-700">{t}</span>
+            <span className="font-medium text-cacao-700">{t}</span>
           </label>
         ))}
       </div>

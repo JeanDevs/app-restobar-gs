@@ -1,14 +1,8 @@
 import { soles, hora, etiquetaMesa } from '../../lib/format'
+import { colorPago } from '../../lib/badges'
 import { exportarHistorialCSV } from '../../lib/export'
 import { useStore } from '../../store/useStore'
 import type { Orden } from '../../types'
-
-const badge: Record<string, string> = {
-  Yape: 'bg-purple-100 text-purple-700',
-  PLIN: 'bg-blue-100 text-blue-700',
-  Efectivo: 'bg-emerald-100 text-emerald-700',
-  Tarjeta: 'bg-amber-100 text-amber-700',
-}
 
 interface HistorialOrdenesProps {
   ordenes: Orden[]
@@ -35,8 +29,8 @@ export default function HistorialOrdenes({
 
   return (
     <div className="card overflow-hidden">
-      <div className="flex items-center justify-between gap-2 border-b border-slate-200 px-4 py-3">
-        <h2 className="font-bold text-slate-800">{titulo}</h2>
+      <div className="flex items-center justify-between gap-2 border-b border-cacao-200 px-4 py-3">
+        <h2 className="font-bold text-cacao-800">{titulo}</h2>
         {conExport && (
           <button
             className="btn-ghost"
@@ -49,14 +43,14 @@ export default function HistorialOrdenes({
         )}
       </div>
 
-      <p className="px-4 pt-2 text-xs text-slate-400">
+      <p className="px-4 pt-2 text-xs text-cacao-400">
         Toca una fila para ver el detalle del pedido.
       </p>
 
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+            <tr className="border-b border-cacao-200 bg-cacao-50 text-left text-xs uppercase tracking-wide text-cacao-500">
               <th className="px-4 py-2">Origen</th>
               <th className="px-4 py-2 text-right">Total</th>
               <th className="px-4 py-2 text-right">Ítems</th>
@@ -72,51 +66,45 @@ export default function HistorialOrdenes({
                 <tr
                   key={o.id}
                   onClick={() => onSelect(o)}
-                  className={`cursor-pointer border-b border-slate-100 last:border-b-0 hover:bg-marca-50 ${
+                  className={`cursor-pointer border-b border-cacao-100 last:border-b-0 hover:bg-marca-50 ${
                     anulada ? 'opacity-60' : ''
                   }`}
                 >
-                  <td className="px-4 py-2 font-semibold text-slate-800">
+                  <td className="px-4 py-2 font-semibold text-cacao-800">
                     {etiquetaMesa(o.mesa_numero)}
                     {o.comensal && (
-                      <span className="block text-xs font-normal text-slate-400">
+                      <span className="block text-xs font-normal text-cacao-400">
                         {o.comensal}
                       </span>
                     )}
                   </td>
                   <td
                     className={`px-4 py-2 text-right font-semibold ${
-                      anulada ? 'line-through text-slate-400' : ''
+                      anulada ? 'line-through text-cacao-400' : ''
                     }`}
                   >
                     {soles(o.total_final ?? o.total)}
                   </td>
-                  <td className="px-4 py-2 text-right text-slate-500">{o.cantidad}</td>
+                  <td className="px-4 py-2 text-right text-cacao-500">{o.cantidad}</td>
                   <td className="px-4 py-2">
                     {anulada ? (
-                      <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
-                        Anulada
-                      </span>
+                      <span className="badge bg-red-100 text-red-700">Anulada</span>
                     ) : (
                       o.tipo_pago && (
-                        <span
-                          className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                            badge[o.tipo_pago] ?? 'bg-slate-100 text-slate-600'
-                          }`}
-                        >
+                        <span className={`badge ${colorPago(o.tipo_pago)}`}>
                           {o.tipo_pago}
                         </span>
                       )
                     )}
                   </td>
-                  <td className="px-4 py-2 text-slate-500">{o.mozo ?? '—'}</td>
-                  <td className="px-4 py-2 text-right text-slate-500">{hora(o.cerrado_en)}</td>
+                  <td className="px-4 py-2 text-cacao-500">{o.mozo ?? '—'}</td>
+                  <td className="px-4 py-2 text-right text-cacao-500">{hora(o.cerrado_en)}</td>
                 </tr>
               )
             })}
             {ordenes.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-slate-400">
+                <td colSpan={6} className="px-4 py-8 text-center text-cacao-400">
                   Aún no hay órdenes cerradas.
                 </td>
               </tr>

@@ -16,7 +16,7 @@ export default function AdminLayout() {
   const navBtn = (v: Vista) =>
     [
       'flex-1 rounded-lg px-3 py-2.5 text-center text-sm font-medium transition md:w-full md:flex-none md:text-left',
-      vista === v ? 'bg-marca-500 text-white' : 'text-slate-600 hover:bg-slate-100',
+      vista === v ? 'bg-marca-500 text-white' : 'text-cacao-600 hover:bg-cacao-100',
     ].join(' ')
 
   return (
@@ -39,7 +39,7 @@ export default function AdminLayout() {
             <button className={navBtn('auditoria')} onClick={() => setVista('auditoria')}>
               🔒 Auditoría
             </button>
-            <div className="mt-2 hidden border-t border-slate-100 pt-2 md:block">
+            <div className="mt-2 hidden border-t border-cacao-100 pt-2 md:block">
               <LogoutButton />
             </div>
           </nav>

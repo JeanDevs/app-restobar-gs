@@ -1,13 +1,26 @@
 # 🔐 Configurar Usuarios de Supabase Auth
 
-## 🔴 Bloqueador Crítico — Testing Fallido
+## ✅ RESUELTO (2026-06-22) — Login funcional
 
-**Estado:** El login no funciona porque los usuarios de Supabase Auth no están creados.
+**Estado:** Los usuarios de Supabase Auth **ya están creados y verificados** vía MCP:
 
-**Investigación:**
+| Email | Password | Rol | UUID | Confirmado |
+|---|---|---|---|---|
+| `mozo1@restobar-gs.local` | `mozo12` | MOZO | `d7d736a5-…` | ✅ |
+| `admin@restobar-gs.local` | `mood12` | ADMIN | `182ece6c-…` | ✅ |
+
+Los UUIDs están vinculados a `public.perfiles` y las contraseñas verificadas con
+`crypt()`. El login funciona en local y en producción. La guía de abajo se conserva
+como referencia por si hay que recrear los usuarios.
+
+---
+
+## 📜 Referencia histórica (cómo se crearon)
+
+**Investigación original:**
 - ✅ BD Supabase: proyecto, esquema, mesas (14), items (24) → TODO OK
 - ✅ Perfiles en tabla `public.perfiles`: mozo1 (MOZO), admin (ADMIN) → TODO OK
-- ❌ Usuarios en `auth.users` (Supabase Auth) → **FALTA CREAR**
+- ✅ Usuarios en `auth.users` (Supabase Auth) → **CREADOS**
 
 **Código esperado (supabaseClient.ts:123):**
 ```typescript

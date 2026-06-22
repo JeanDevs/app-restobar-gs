@@ -24,13 +24,13 @@ export default function AnularModal({
 
   return (
     <Modal titulo="¿Anular mesa?" onClose={busy ? undefined : onCancel}>
-      <div className="mb-4 space-y-1 rounded-lg bg-slate-50 px-3 py-2 text-sm">
+      <div className="mb-4 space-y-1 rounded-lg bg-cacao-50 px-3 py-2 text-sm">
         <div className="flex justify-between">
-          <span className="text-slate-500">Origen</span>
+          <span className="text-cacao-500">Origen</span>
           <span className="font-semibold">{etiquetaMesa(orden.mesa_numero)}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-slate-500">Total</span>
+          <span className="text-cacao-500">Total</span>
           <span className="font-semibold">{soles(orden.total)}</span>
         </div>
       </div>

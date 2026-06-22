@@ -6,24 +6,26 @@
 ## Estado
 
 - **📦 Proyecto:** `app-restobar-gs` — POS web de control de mesas para Restobar GS
-- **📍 Fase:** `4 · qa_security` — Testing en producción (Vercel + Supabase)
-- **✅ Último avance (2026-06-22 testing):**
+- **📍 Fase:** `5 · mejora_total` — Rama `development`: rediseño visual + endurecimiento (plan total)
+- **✅ Último avance (2026-06-22):**
   - ✅ App en Vercel: https://app-restobar-gs.vercel.app (deployment successful)
   - ✅ Supabase: esquema completo, 14 mesas, 24 items, perfiles en BD
   - ✅ Rama `development` creada para cambios futuros
-  - ❌ **BLOQUEADOR CRÍTICO:** Usuarios de Supabase Auth no creados (ver `AUTH_USERS_SETUP.md`)
+  - ✅ **BLOQUEADOR RESUELTO:** Usuarios de Supabase Auth creados y verificados
+    (`mozo1@restobar-gs.local`/`mozo12`, `admin@restobar-gs.local`/`mood12`,
+    emails confirmados, UUIDs vinculados a `perfiles`). El login funciona.
 
-- **🔴 Bloqueador Crítico:**
-  - Login falla: "Usuario o contraseña incorrectos"
-  - Causa: Usuarios en `auth.users` no existen (solo perfiles en tabla `perfiles`)
-  - Código busca: `mozo1@restobar-gs.local` y `admin@restobar-gs.local`
-  - Solución: Crear usuarios manualmente en Supabase dashboard o vía script
+- **🟢 Plan de mejora total (rama `development`):**
+  - Track 0 — Desbloquear login → ✅ HECHO (auth users verificados vía MCP)
+  - Track 1 — Rediseño visual con theme-factory (tema **Golden Hour**)
+  - Track 2 — M-04: aprobación cruzada entre mozos (Auth real ya activo)
+  - Track 3 — Seguridad: quitar credenciales en claro, revisar `rol_actual()` SECURITY DEFINER
+  - Track 4 — Calidad: tests (Vitest), PWA instalable (mozo), reconexión Realtime
 
-- **📝 Próximas acciones (bloqueador primero):**
-  1. **URGENTE:** Crear usuarios Supabase Auth (ver `AUTH_USERS_SETUP.md`)
-  2. Testing local: login + flujos (mozo + admin)
-  3. `git push origin main` → Vercel redeploy
-  4. Testing en producción: verificar login + flujos en Vercel
+- **📝 Próximas acciones:**
+  1. Aplicar rediseño Golden Hour (tokens Tailwind + Login + Header + grid de mesas)
+  2. Endurecer seguridad (credenciales fuera del Login en prod)
+  3. `git push origin development` → preview deploy
 
 - **📝 Backlog de mejoras pendientes:** ver [`MEJORAS.md`](MEJORAS.md) (pagos PLIN/Tarjeta, venta en
   barra, permisos por mozo, cerrar día, pago parcial por ítem, nombre de comensal, etc.).
@@ -74,6 +76,22 @@ npm install && npm run dev     # http://localhost:5173
 6. **Verification:** Login en producción + flujos completos
 
 ## Changelog
+
+- **2026-06-22 (mejora total · rama `development`)** — **Bloqueador de login RESUELTO** (usuarios
+  auth `mozo1`/`admin` verificados vía MCP: hashes de password correctos, emails confirmados, UUIDs
+  vinculados a `perfiles`; login probado end-to-end en vivo contra Supabase). **Rediseño visual
+  Golden Hour** (theme-factory): nueva paleta Tailwind `marca`/`terra`/`arena`/`cacao` (mostaza/
+  terracota/beige/chocolate) + tipografía **Fraunces** (títulos) / **Inter** (UI); `slate→cacao` y
+  `amber→marca` en los 22 componentes; Login, Header y grid de mesas rediseñados; fondo cálido sin
+  `background-attachment: fixed` (mejor en móvil). **Seguridad:** credenciales de prueba ocultas en
+  prod (`import.meta.env.DEV`). Build verde (127 módulos). Verificado por estilos computados.
+  **Track 4 (parcial): PWA instalable** ✅ — `vite-plugin-pwa` + service worker (autoUpdate) +
+  manifest (standalone, portrait, es) + íconos Golden Hour (192/512/maskable/apple-touch generados
+  con `sharp` desde `public/icon.svg` vía `scripts/generate-icons.mjs`); cache-first de Google Fonts
+  (carga offline); `devOptions.enabled` para probar en dev. SW registrado y verificado en vivo.
+  **Pendiente (próxima sesión):** Track 4 resto (tests Vitest de flujos críticos + reconexión
+  Realtime) y Track 2 (M-04 aprobación cruzada entre mozos). Advisors Supabase: `rol_actual()`
+  SECURITY DEFINER y leaked-password protection (bajo riesgo, app interna).
 
 - **2026-06-21 (sesión final)** — **Fase 2 COMPLETADA AL 85%** — Supabase proyecto creado (kknvrufoelhdtouprcvm),
   esquema SQL deployado (7 tablas + RLS + Realtime), seed data cargado (mesas 1-14, 24 items).

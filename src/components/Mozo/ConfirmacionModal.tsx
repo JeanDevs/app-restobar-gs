@@ -25,20 +25,20 @@ export default function ConfirmacionModal({
 }: ConfirmacionModalProps) {
   return (
     <Modal titulo="Confirmar cierre" onClose={busy ? undefined : onCancel}>
-      <p className="mb-1 text-sm text-slate-600">¿Está seguro de cerrar esta orden?</p>
-      <div className="mb-5 mt-3 space-y-1 rounded-lg bg-slate-50 px-3 py-2 text-sm">
+      <p className="mb-1 text-sm text-cacao-600">¿Está seguro de cerrar esta orden?</p>
+      <div className="mb-5 mt-3 space-y-1 rounded-lg bg-cacao-50 px-3 py-2 text-sm">
         <div className="flex justify-between">
-          <span className="text-slate-500">Origen</span>
+          <span className="text-cacao-500">Origen</span>
           <span className="font-semibold">{etiquetaMesa(mesaNumero)}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-slate-500">{hayCobros ? 'Saldo a cobrar' : 'Total'}</span>
+          <span className="text-cacao-500">{hayCobros ? 'Saldo a cobrar' : 'Total'}</span>
           <span className="font-semibold">
             {hayCobros && total === 0 ? 'Sin saldo pendiente' : soles(total)}
           </span>
         </div>
         <div className="flex justify-between">
-          <span className="text-slate-500">Pago</span>
+          <span className="text-cacao-500">Pago</span>
           <span className="font-semibold">{tipoPago}</span>
         </div>
       </div>

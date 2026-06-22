@@ -10,7 +10,7 @@ export default function MesaSelector() {
 
   return (
     <div className="card p-4">
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
+      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-cacao-500">
         Mesa
       </h2>
       <div className="grid grid-cols-5 gap-2 sm:grid-cols-7">
@@ -22,18 +22,18 @@ export default function MesaSelector() {
               key={mesa.id}
               onClick={() => setMesaActiva(activa ? null : mesa.numero)}
               className={[
-                'relative flex h-14 items-center justify-center rounded-lg border text-base font-bold transition sm:h-12 sm:text-sm',
+                'relative flex h-14 items-center justify-center rounded-xl border text-base font-bold transition sm:h-12 sm:text-sm',
                 activa
-                  ? 'border-marca-600 bg-marca-500 text-white shadow'
+                  ? 'border-marca-600 bg-marca-500 text-cacao-900 shadow'
                   : ocupada
-                    ? 'border-amber-300 bg-amber-50 text-amber-700'
-                    : 'border-slate-200 bg-white text-slate-700 hover:border-marca-400',
+                    ? 'border-terra-200 bg-terra-50 text-terra-700'
+                    : 'border-arena-200 bg-white text-cacao-700 hover:border-marca-400',
               ].join(' ')}
               title={`Mesa ${mesa.numero} · ${mesa.estado}`}
             >
               {mesa.numero}
               {ocupada && !activa && (
-                <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-amber-500" />
+                <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-terra-500" />
               )}
             </button>
           )
@@ -47,10 +47,10 @@ export default function MesaSelector() {
             setMesaActiva(mesaActiva === MESA_BARRA ? null : MESA_BARRA)
           }
           className={[
-            'mt-3 flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg border text-sm font-bold transition',
+            'mt-3 flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border text-sm font-bold transition',
             mesaActiva === MESA_BARRA
-              ? 'border-marca-600 bg-marca-500 text-white shadow'
-              : 'border-slate-200 bg-white text-slate-700 hover:border-marca-400',
+              ? 'border-cacao-700 bg-cacao-800 text-marca-200 shadow'
+              : 'border-arena-200 bg-white text-cacao-700 hover:border-marca-400',
           ].join(' ')}
         >
           🍸 Barra (venta sin mesa)

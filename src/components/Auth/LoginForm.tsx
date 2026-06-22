@@ -64,11 +64,13 @@ export default function LoginForm() {
         {loading ? 'Ingresando…' : 'Ingresar'}
       </button>
 
-      <div className="rounded-lg bg-slate-50 px-3 py-2 text-xs leading-relaxed text-slate-500">
-        <p className="font-semibold text-slate-600">Credenciales de prueba (Fase 1)</p>
-        <p>Mozo: <code>mozo1</code> / <code>mozo12</code></p>
-        <p>Admin: <code>admin</code> / <code>mood12</code></p>
-      </div>
+      {import.meta.env.DEV && (
+        <div className="rounded-lg bg-cacao-50 px-3 py-2 text-xs leading-relaxed text-cacao-500">
+          <p className="font-semibold text-cacao-600">Credenciales de prueba (solo dev)</p>
+          <p>Mozo: <code>mozo1</code> / <code>mozo12</code></p>
+          <p>Admin: <code>admin</code> / <code>mood12</code></p>
+        </div>
+      )}
     </form>
   )
 }

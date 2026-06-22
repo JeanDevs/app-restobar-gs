@@ -9,8 +9,8 @@ import type { Orden } from '../../types'
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="card p-4">
-      <p className="text-xs uppercase tracking-wide text-slate-400">{label}</p>
-      <p className="mt-1 text-2xl font-extrabold text-slate-800">{value}</p>
+      <p className="text-xs uppercase tracking-wide text-cacao-400">{label}</p>
+      <p className="mt-1 text-2xl font-extrabold text-cacao-800">{value}</p>
     </div>
   )
 }

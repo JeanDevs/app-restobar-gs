@@ -37,8 +37,8 @@ export default function CerrarDia() {
   return (
     <div className="card flex flex-wrap items-center justify-between gap-2 p-4">
       <div>
-        <p className="font-semibold text-slate-700">Cierre de día</p>
-        <p className="text-xs text-slate-400">
+        <p className="font-semibold text-cacao-700">Cierre de día</p>
+        <p className="text-xs text-cacao-400">
           Corte de caja: consolida las ventas de hoy y reinicia el contador del día.
         </p>
       </div>
@@ -56,17 +56,17 @@ export default function CerrarDia() {
           titulo="Cerrar día · corte de caja"
           onClose={busy ? undefined : cerrarModal}
         >
-          <div className="mb-4 space-y-1 rounded-lg bg-slate-50 px-3 py-3 text-sm">
+          <div className="mb-4 space-y-1 rounded-lg bg-cacao-50 px-3 py-3 text-sm">
             <div className="flex justify-between">
-              <span className="text-slate-500">Fecha</span>
+              <span className="text-cacao-500">Fecha</span>
               <span className="font-semibold">{fecha(new Date().toISOString())}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500">Pedidos</span>
+              <span className="text-cacao-500">Pedidos</span>
               <span className="font-semibold">{conteo}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500">Total</span>
+              <span className="text-cacao-500">Total</span>
               <span className="font-semibold">{soles(total)}</span>
             </div>
           </div>
@@ -75,13 +75,13 @@ export default function CerrarDia() {
           <div className="mb-4 space-y-1 text-sm">
             {TIPOS_PAGO.map((t) => (
               <div key={t} className="flex justify-between">
-                <span className="text-slate-500">{t}</span>
+                <span className="text-cacao-500">{t}</span>
                 <span className="font-medium">{soles(porTipo[t])}</span>
               </div>
             ))}
           </div>
 
-          <p className="mb-4 text-xs text-slate-400">
+          <p className="mb-4 text-xs text-cacao-400">
             Al cerrar, estos pedidos dejan de contar en "hoy". El historial completo se conserva.
           </p>
 
@@ -99,7 +99,7 @@ export default function CerrarDia() {
               disabled={busy}
               autoComplete="off"
             />
-            <p className="mt-1 text-xs text-slate-400">
+            <p className="mt-1 text-xs text-cacao-400">
               Confirmar el cierre requiere la clave del administrador. Queda registrado en
               auditoría.
             </p>

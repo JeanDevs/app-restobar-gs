@@ -39,29 +39,29 @@ export default function OrdenActual({
     <CollapsibleCard
       titulo={`Orden actual · ${etiquetaMesa(mesaNumero)}${orden?.comensal ? ' · ' + orden.comensal : ''}`}
       derecha={
-        <span className="text-xs font-medium text-slate-500">
+        <span className="text-xs font-medium text-cacao-500">
           {items.length} ítem(s) · {soles(total)}
         </span>
       }
     >
-      <div className="divide-y divide-slate-100">
+      <div className="divide-y divide-cacao-100">
         {items.length === 0 && (
-          <p className="py-8 text-center text-sm text-slate-400">
+          <p className="py-8 text-center text-sm text-cacao-400">
             Aún no hay ítems. Busca y agrega arriba.
           </p>
         )}
         {items.map((it) => (
           <div key={it.id} className="flex items-center justify-between gap-2 py-2">
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-slate-800">
+              <p className="truncate text-sm font-medium text-cacao-800">
                 {it.item_nombre}
               </p>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-cacao-400">
                 {it.cantidad} × {soles(it.item_precio)}
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-sm font-semibold text-slate-700">
+              <span className="text-sm font-semibold text-cacao-700">
                 {soles(it.subtotal)}
               </span>
               {it.pagado ? (
@@ -84,21 +84,21 @@ export default function OrdenActual({
         ))}
       </div>
 
-      <div className="mt-3 border-t border-slate-200 pt-3">
+      <div className="mt-3 border-t border-cacao-200 pt-3">
         <div className="mb-3 flex items-center justify-between">
-          <span className="text-sm font-medium text-slate-500">Total</span>
-          <span className="text-2xl font-extrabold text-slate-800">{soles(total)}</span>
+          <span className="text-sm font-medium text-cacao-500">Total</span>
+          <span className="text-2xl font-extrabold text-cacao-800">{soles(total)}</span>
         </div>
 
         {/* Si hay cobros parciales, mostramos lo pagado y el saldo restante. */}
         {hayCobros && (
-          <div className="mb-3 space-y-1 rounded-lg bg-slate-50 px-3 py-2 text-sm">
+          <div className="mb-3 space-y-1 rounded-lg bg-cacao-50 px-3 py-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-slate-500">Pagado</span>
+              <span className="text-cacao-500">Pagado</span>
               <span className="font-semibold text-emerald-600">{soles(pagado)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500">Saldo</span>
+              <span className="text-cacao-500">Saldo</span>
               <span className="font-semibold">{soles(saldo)}</span>
             </div>
           </div>
@@ -106,7 +106,7 @@ export default function OrdenActual({
 
         {/* M-04: nota cuando la mesa pertenece a otro mozo. */}
         {bloqueado && (
-          <p className="mb-3 rounded-lg bg-slate-100 px-3 py-2 text-xs text-slate-500">
+          <p className="mb-3 rounded-lg bg-cacao-100 px-3 py-2 text-xs text-cacao-500">
             Mesa de otro mozo ({mozoDueno}). Pide al admin.
           </p>
         )}
