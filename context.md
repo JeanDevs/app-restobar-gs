@@ -6,14 +6,25 @@
 ## Estado
 
 - **📦 Proyecto:** `app-restobar-gs` — POS web de control de mesas para Restobar GS
-- **📍 Fase:** `3 · development` → `4 · qa_security` — Fase 2 iniciada: Supabase proyecto creado (kknvrufoelhdtouprcvm), esquema SQL deployado, mesas e items semillados, RLS configurado.
-- **✅ Último avance:** `supabaseClient.ts` implementado (swap del `DataClient`), `index.ts` selecciona
-  por `VITE_DATA_SOURCE`, `main.tsx` restaura sesión async, `.env.example` listo, git init + 1er commit.
-  En curso: sprint de mejoras M-04/M-07/M-10..M-13 (cobro parcial, anular, auditoría) sobre el mock.
-- **🎯 Próxima tarea:** terminar sprint de mejoras; luego reanudar Fase 2 (crear proyecto Supabase,
-  correr SQL, crear usuarios Auth, deploy Vercel vía MCP).
-- **⚠️ Standby Fase 2:** falta que Jean cree el proyecto Supabase y dé URL + anon key. GitHub: `gh`
-  instalado, pendiente `gh auth login` + `gh repo create`. Vercel: MCP conectado, listo para deploy.
+- **📍 Fase:** `4 · qa_security` — Testing en producción (Vercel + Supabase)
+- **✅ Último avance (2026-06-22 testing):**
+  - ✅ App en Vercel: https://app-restobar-gs.vercel.app (deployment successful)
+  - ✅ Supabase: esquema completo, 14 mesas, 24 items, perfiles en BD
+  - ✅ Rama `development` creada para cambios futuros
+  - ❌ **BLOQUEADOR CRÍTICO:** Usuarios de Supabase Auth no creados (ver `AUTH_USERS_SETUP.md`)
+
+- **🔴 Bloqueador Crítico:**
+  - Login falla: "Usuario o contraseña incorrectos"
+  - Causa: Usuarios en `auth.users` no existen (solo perfiles en tabla `perfiles`)
+  - Código busca: `mozo1@restobar-gs.local` y `admin@restobar-gs.local`
+  - Solución: Crear usuarios manualmente en Supabase dashboard o vía script
+
+- **📝 Próximas acciones (bloqueador primero):**
+  1. **URGENTE:** Crear usuarios Supabase Auth (ver `AUTH_USERS_SETUP.md`)
+  2. Testing local: login + flujos (mozo + admin)
+  3. `git push origin main` → Vercel redeploy
+  4. Testing en producción: verificar login + flujos en Vercel
+
 - **📝 Backlog de mejoras pendientes:** ver [`MEJORAS.md`](MEJORAS.md) (pagos PLIN/Tarjeta, venta en
   barra, permisos por mozo, cerrar día, pago parcial por ítem, nombre de comensal, etc.).
 
