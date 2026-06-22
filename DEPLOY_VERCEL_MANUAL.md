@@ -21,13 +21,13 @@
 - Email: `mozo1@restobar-gs.local`
 - Password: `mozo12`
 - Haz clic en crear usuario
-- **COPIAR EL UUID** que aparece en la columna "ID"
+- **COPIAR EL UUID**:d7d736a5-a0dd-4661-8918-0eba01372de8
 
 **Crear Usuario 2 (Admin):**
 - Email: `admin@restobar-gs.local`
 - Password: `mood12`
 - Haz clic en crear usuario
-- **COPIAR EL UUID** que aparece en la columna "ID"
+- **COPIAR EL UUID**:182ece6c-dac3-468b-971e-62d5fa73f74f
 
 ### Paso 2: Vincular Usuarios a Perfiles en BD
 
@@ -37,15 +37,15 @@
 
 ```sql
 INSERT INTO public.perfiles (id, usuario, rol) VALUES
-  ('<UUID_MOZO1>', 'mozo1', 'MOZO'),
-  ('<UUID_ADMIN>', 'admin', 'ADMIN');
+  ('d7d736a5-a0dd-4661-8918-0eba01372de8', 'mozo1', 'MOZO'),
+  ('182ece6c-dac3-468b-971e-62d5fa73f74f', 'admin', 'ADMIN');
 ```
 
 Ejemplo (reemplaza con tus UUIDs reales):
 ```sql
 INSERT INTO public.perfiles (id, usuario, rol) VALUES
-  ('550e8400-e29b-41d4-a716-446655440000', 'mozo1', 'MOZO'),
-  ('660e8400-e29b-41d4-a716-446655440000', 'admin', 'ADMIN');
+  ('d7d736a5-a0dd-4661-8918-0eba01372de8', 'mozo1', 'MOZO'),
+  ('182ece6c-dac3-468b-971e-62d5fa73f74f', 'admin', 'ADMIN');
 ```
 
 4. Haz clic en "Run"
