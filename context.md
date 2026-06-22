@@ -6,7 +6,7 @@
 ## Estado
 
 - **📦 Proyecto:** `app-restobar-gs` — POS web de control de mesas para Restobar GS
-- **📍 Fase:** `3 · development` — Fase 1 completa; **Fase 2 EN STANDBY** (decisión de Jean 2026-06-21).
+- **📍 Fase:** `3 · development` → `4 · qa_security` — Fase 2 iniciada: Supabase proyecto creado (kknvrufoelhdtouprcvm), esquema SQL deployado, mesas e items semillados, RLS configurado.
 - **✅ Último avance:** `supabaseClient.ts` implementado (swap del `DataClient`), `index.ts` selecciona
   por `VITE_DATA_SOURCE`, `main.tsx` restaura sesión async, `.env.example` listo, git init + 1er commit.
   En curso: sprint de mejoras M-04/M-07/M-10..M-13 (cobro parcial, anular, auditoría) sobre el mock.
