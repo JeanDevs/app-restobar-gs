@@ -76,9 +76,9 @@ function Precio({ value }: { value: number }) {
 
 export default function PublicCarta() {
   return (
-    <div className="min-h-full bg-cacao-950 text-arena-100">
+    <div className="min-h-full bg-[#08080a] text-arena-100">
       {/* Header */}
-      <header className="sticky top-0 z-10 border-b border-arena-50/10 bg-cacao-950/85 backdrop-blur-md">
+      <header className="sticky top-0 z-10 border-b border-arena-50/10 bg-[#08080a]/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-lg items-center justify-between px-5 py-4">
           <a href="/" className="text-sm text-arena-300 hover:text-arena-100">
             ← Inicio
