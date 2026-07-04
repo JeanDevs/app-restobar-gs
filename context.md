@@ -22,10 +22,18 @@
   - Track 3 — Seguridad: quitar credenciales en claro, revisar `rol_actual()` SECURITY DEFINER
   - Track 4 — Calidad: tests (Vitest), PWA instalable (mozo), reconexión Realtime
 
+- **🟡 Feature en curso (2026-07-04): Puertas públicas + Club DF** (spec aprobado — ver
+  `specs/puertas-publicas-club.md`). Construido y verificado LOCAL; **falta deploy a prod (T6)**.
+  - **Marca nueva de cara al cliente:** el local ahora es **"Destino Final"**, club **"Club DF"**.
+  - `app-restobar-gs` es ahora la **puerta única**: `/` (landing), `/carta` (estática), `/club`
+    (registro + tarjeta de puntos). **El POS se movió a `/app`** (mozos deben usar `/app`).
+  - BD: tabla `clientes` + función `registrar_cliente` (bono 50 pts) aplicadas y verificadas.
+
 - **📝 Próximas acciones:**
-  1. Aplicar rediseño Golden Hour (tokens Tailwind + Login + Header + grid de mesas)
-  2. Endurecer seguridad (credenciales fuera del Login en prod)
-  3. `git push origin development` → preview deploy
+  1. **Deploy a producción** de la rama con las puertas públicas (T6) + verificar `/ /carta /club /app`.
+  2. Reimprimir QR apuntando a la URL de `app-restobar-gs` (raíz).
+  3. Avisar a los mozos que su acceso ahora es `/app`.
+  4. Fase 2: carta dinámica desde Supabase + acumulación de puntos por consumo desde el POS.
 
 - **📝 Backlog de mejoras pendientes:** ver [`MEJORAS.md`](MEJORAS.md) (pagos PLIN/Tarjeta, venta en
   barra, permisos por mozo, cerrar día, pago parcial por ítem, nombre de comensal, etc.).
