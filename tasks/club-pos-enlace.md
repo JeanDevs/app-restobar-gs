@@ -18,6 +18,8 @@ Una tarea a la vez; verificación contra criterios del spec antes de la siguient
   rápido (bono 50), S/3.50 → +4 pts (ceil ✓), canje −30 con ítem 🎁 y fila `canjes` ✓, toast
   "⭐ TEST SMOKE UI: +4 pts · canje −30 · saldo 24"; datos TEST eliminados; 4 órdenes reales
   abiertas intactas; /club con regla nueva; 0 errores de consola.
-- [ ] **T7 · Deploy a producción** + verificación de rutas y smoke en prod.
-- [ ] **T8 · Cierre** — `context.md` + `progress.md`; confirmar con Jean. (Seed de premios
-  queda pendiente del insumo de Jean — P2 inerte hasta entonces.)
+- [x] **T7 · Deploy a producción** ✅ dpl_EKm7Wekj READY · alias `destinofinal.vercel.app` ·
+  4 rutas 200 · bundle desplegado contiene el código club (verificado por grep).
+- [x] **T8 · Cierre** ✅ `context.md` + `progress.md` actualizados. **Pendiente de Jean:**
+  lista de premios con costo en puntos (P2 desplegada pero inerte: catálogo vacío ⇒ el
+  selector de canje no aparece hasta sembrar `premios`).

@@ -22,18 +22,24 @@
   - Track 3 — Seguridad: quitar credenciales en claro, revisar `rol_actual()` SECURITY DEFINER
   - Track 4 — Calidad: tests (Vitest), PWA instalable (mozo), reconexión Realtime
 
-- **🟡 Feature en curso (2026-07-04): Puertas públicas + Club DF** (spec aprobado — ver
-  `specs/puertas-publicas-club.md`). Construido y verificado LOCAL; **falta deploy a prod (T6)**.
-  - **Marca nueva de cara al cliente:** el local ahora es **"Destino Final"**, club **"Club DF"**.
-  - `app-restobar-gs` es ahora la **puerta única**: `/` (landing), `/carta` (estática), `/club`
-    (registro + tarjeta de puntos). **El POS se movió a `/app`** (mozos deben usar `/app`).
-  - BD: tabla `clientes` + función `registrar_cliente` (bono 50 pts) aplicadas y verificadas.
+- **✅ Feature cerrada (2026-07-04): Puertas públicas + Club DF** (`specs/puertas-publicas-club.md`).
+  EN PRODUCCIÓN: `destinofinal.vercel.app` — `/` landing, `/carta` (rediseñada con logo + nav
+  por categorías), `/club` (registro + tarjeta), POS en `/app`. Marca: **Destino Final / Club DF**.
+
+- **✅ Feature cerrada (2026-07-05): Enlace Club DF ↔ POS** (`specs/club-pos-enlace.md`, P1+P2).
+  EN PRODUCCIÓN. Reglas: **1 sol = 1 punto (ceil)** · bono bienvenida 50 pts · registro rápido
+  por el mozo · premio entra a la mesa con S/ 0.00 y no suma puntos.
+  - BD (aditiva, backups `_backup_*_20260705`): `clientes.puntos_historicos/usados`,
+    `ordenes.cliente_id`, tablas `premios` y `canjes`, RPCs `buscar_cliente_club` /
+    `consultar_puntos` / `finalizar_club` (guard anti-doble-acumulación).
+  - POS: sección ⭐ Club DF opcional en el modal de cierre; club post-cierre NO bloqueante.
+  - `/club`: tarjeta muestra regla nueva + saldo real.
 
 - **📝 Próximas acciones:**
-  1. **Deploy a producción** de la rama con las puertas públicas (T6) + verificar `/ /carta /club /app`.
-  2. Reimprimir QR apuntando a la URL de `app-restobar-gs` (raíz).
-  3. Avisar a los mozos que su acceso ahora es `/app`.
-  4. Fase 2: carta dinámica desde Supabase + acumulación de puntos por consumo desde el POS.
+  1. **Jean: lista de premios** (nombre + costo en puntos) → sembrar `premios` (el canje ya
+     está desplegado; aparece solo cuando haya premios activos).
+  2. P3 del enlace: listar/buscar clientes desde el POS + historial de canjes en `/club`.
+  3. Fase 2 pendiente: carta dinámica desde Supabase.
 
 - **📝 Backlog de mejoras pendientes:** ver [`MEJORAS.md`](MEJORAS.md) (pagos PLIN/Tarjeta, venta en
   barra, permisos por mozo, cerrar día, pago parcial por ítem, nombre de comensal, etc.).
