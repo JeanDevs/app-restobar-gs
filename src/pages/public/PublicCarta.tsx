@@ -1,9 +1,13 @@
+import { useState } from 'react'
+import { MARCA } from '../../lib/marca'
+
 // Carta pública (comensal) — estática esta noche. Fase 2: leer de Supabase (items) en vivo.
 interface CartaItem {
   nombre: string
   precio: number
 }
 interface CartaCategoria {
+  id: string
   titulo: string
   nota?: string
   items: CartaItem[]
@@ -11,6 +15,7 @@ interface CartaCategoria {
 
 const CARTA: CartaCategoria[] = [
   {
+    id: 'cocteles',
     titulo: 'Cócteles',
     nota: 'Todos S/ 15.00',
     items: [
@@ -27,40 +32,32 @@ const CARTA: CartaCategoria[] = [
     ],
   },
   {
+    id: 'cervezas',
     titulo: 'Cervezas',
     nota: 'Promos por cantidad',
     items: [
       { nombre: 'Cerveza (1 und)', precio: 15 },
       { nombre: 'Cerveza (3 und)', precio: 40 },
       { nombre: 'Cerveza (5 und)', precio: 65 },
-      { nombre: 'Cerveza día familiar', precio: 9 },
       { nombre: 'Cerveza 3 Cruces (1 und)', precio: 8 },
       { nombre: 'Cerveza 3 Cruces (2 und)', precio: 15 },
     ],
   },
   {
+    id: 'gaseosas',
     titulo: 'Gaseosas',
     items: [
-      { nombre: 'Coca Cola (500 mL)', precio: 5 },
-      { nombre: 'Coca Cola (1.5 L)', precio: 14 },
-      { nombre: 'Inka Cola (500 mL)', precio: 5 },
-      { nombre: 'Inka Cola (1.5 L)', precio: 14 },
-      { nombre: 'Gaseosa familiar 1½ L', precio: 10 },
+      { nombre: 'Coca Cola / Inka Cola (500 mL)', precio: 5 },
+      { nombre: 'Coca Cola / Inka Cola (1.5 L)', precio: 14 },
     ],
   },
   {
+    id: 'aguas',
     titulo: 'Aguas',
     items: [
       { nombre: 'Agua Cielo (625 mL)', precio: 3 },
       { nombre: 'San Luis (625 mL)', precio: 3.5 },
       { nombre: 'San Mateo (625 mL)', precio: 3.5 },
-    ],
-  },
-  {
-    titulo: 'Cigarros',
-    items: [
-      { nombre: 'Cigarro Lucky (1 und)', precio: 2.5 },
-      { nombre: 'Cigarro Lucky (1 caja)', precio: 32 },
     ],
   },
 ]
@@ -74,27 +71,94 @@ function Precio({ value }: { value: number }) {
   )
 }
 
+function irACategoria(id: string) {
+  const el = document.getElementById(`cat-${id}`)
+  if (el) {
+    const y = el.getBoundingClientRect().top + window.scrollY - 132
+    window.scrollTo({ top: y, behavior: 'smooth' })
+  }
+}
+
+function CategoriaNav() {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <div className="border-t border-arena-50/10">
+      {/* Móvil: menú desplegable */}
+      <div className="relative sm:hidden">
+        <button
+          onClick={() => setOpen((v) => !v)}
+          className="flex w-full items-center justify-between px-5 py-3 text-sm font-medium text-marca-300"
+        >
+          <span>📋 Categorías</span>
+          <span className={`transition-transform ${open ? 'rotate-180' : ''}`}>▾</span>
+        </button>
+        {open && (
+          <div id="carta-cat-mobile" className="border-t border-arena-50/10 bg-[#0c0c0e]">
+            {CARTA.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => {
+                  setOpen(false)
+                  irACategoria(cat.id)
+                }}
+                className="block w-full px-5 py-3 text-left text-sm text-arena-200 active:bg-marca-500/10"
+              >
+                {cat.titulo}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Escritorio: pestañas horizontales */}
+      <div id="carta-cat-desktop" className="mx-auto hidden max-w-lg gap-2 overflow-x-auto px-5 py-3 sm:flex">
+        {CARTA.map((cat) => (
+          <button
+            key={cat.id}
+            onClick={() => irACategoria(cat.id)}
+            className="whitespace-nowrap rounded-full border border-marca-500/30 px-4 py-1.5 text-sm text-marca-300 transition hover:bg-marca-500/10"
+          >
+            {cat.titulo}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export default function PublicCarta() {
   return (
     <div className="min-h-full bg-[#08080a] text-arena-100">
       {/* Header */}
-      <header className="sticky top-0 z-10 border-b border-arena-50/10 bg-[#08080a]/85 backdrop-blur-md">
-        <div className="mx-auto flex max-w-lg items-center justify-between px-5 py-4">
+      <header className="sticky top-0 z-10 bg-[#08080a]/95 backdrop-blur-md">
+        <div className="mx-auto flex max-w-lg items-center justify-between px-5 py-3">
           <a href="/" className="text-sm text-arena-300 hover:text-arena-100">
             ← Inicio
           </a>
-          <span className="brand text-lg text-arena-50">Destino Final</span>
+          <a href="/" className="flex items-center gap-2">
+            <img
+              src={MARCA.logo}
+              alt=""
+              className="h-8 w-8 object-contain"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none'
+              }}
+            />
+            <span className="brand text-lg text-arena-50">{MARCA.nombre}</span>
+          </a>
           <a href="/club" className="text-sm text-marca-300 hover:text-marca-200">
             Club DF
           </a>
         </div>
+        <CategoriaNav />
       </header>
 
       <main className="mx-auto max-w-lg px-6 pb-24 pt-8">
         <h1 className="brand mb-8 text-center text-3xl text-arena-50">Carta</h1>
 
         {CARTA.map((cat) => (
-          <section key={cat.titulo} className="mb-10">
+          <section key={cat.id} id={`cat-${cat.id}`} className="mb-10">
             <div className="mb-4 flex items-baseline justify-between border-b border-arena-50/10 pb-2">
               <h2 className="brand text-2xl text-marca-300">{cat.titulo}</h2>
               {cat.nota && <span className="text-xs text-arena-400">{cat.nota}</span>}
