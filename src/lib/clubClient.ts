@@ -48,3 +48,22 @@ export async function registrarCliente(
   if (!row) throw new Error('No se pudo registrar. Intenta de nuevo.')
   return row as TarjetaCliente
 }
+
+export interface SaldoClub {
+  puntos: number
+  puntos_historicos: number
+  puntos_usados: number
+}
+
+// Consulta el saldo REAL en la BD (la tarjeta local puede estar desactualizada
+// porque los puntos se acumulan desde el POS al cerrar la mesa).
+export async function consultarPuntos(whatsapp: string): Promise<SaldoClub | null> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sb = client() as any
+  const { data, error } = await sb.rpc('consultar_puntos', {
+    p_whatsapp: normalizarWhatsapp(whatsapp),
+  })
+  if (error) throw new Error(error.message)
+  const row = Array.isArray(data) ? data[0] : data
+  return row ? (row as SaldoClub) : null
+}

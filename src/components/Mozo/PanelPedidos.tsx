@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import MesaSelector from './MesaSelector'
 import OrdenActual from './OrdenActual'
 import AgregarItemPanel from './AgregarItemPanel'
-import FinalizarModal from './FinalizarModal'
+import FinalizarModal, { type ClubSeleccion } from './FinalizarModal'
+import { db } from '../../services'
 import ConfirmacionModal from './ConfirmacionModal'
 import CobroParcialModal from './CobroParcialModal'
 import AnularModal from './AnularModal'
@@ -36,6 +37,8 @@ export default function PanelPedidos() {
   const [comensal, setComensal] = useState('')
   const [showFinalizar, setShowFinalizar] = useState(false)
   const [tipoPago, setTipoPago] = useState<TipoPago | null>(null)
+  // Club DF: cliente/premio elegidos en el FinalizarModal (se ejecuta tras el cierre).
+  const [club, setClub] = useState<ClubSeleccion | null>(null)
   const [busy, setBusy] = useState(false)
   const [showCobroParcial, setShowCobroParcial] = useState(false)
   const [showAnular, setShowAnular] = useState(false)
@@ -86,8 +89,32 @@ export default function PanelPedidos() {
     try {
       await finalizarOrden(orden.id, tipoPago)
       pushToast(`${etiquetaMesa(orden.mesa_numero)} cerrada · ${tipoPago}`, 'ok')
+
+      // Club DF: la mesa YA cerró bien; el club es un paso extra NO bloqueante.
+      if (club && db.finalizarClub) {
+        try {
+          const r = await db.finalizarClub(
+            orden.id,
+            club.cliente.id,
+            club.premioId,
+            sesion?.usuario ?? null,
+          )
+          const canje = r.puntos_canjeados > 0 ? ` · canje −${r.puntos_canjeados}` : ''
+          pushToast(
+            `⭐ ${club.cliente.nombre}: +${r.puntos_ganados} pts${canje} · saldo ${r.saldo}`,
+            'ok',
+          )
+        } catch (e) {
+          pushToast(
+            `Mesa cerrada, pero el Club DF falló: ${e instanceof Error ? e.message : 'error'}`,
+            'error',
+          )
+        }
+      }
+
       setShowFinalizar(false)
       setTipoPago(null)
+      setClub(null)
       setMesaActiva(null)
     } catch (e) {
       pushToast(e instanceof Error ? e.message : 'No se pudo cerrar', 'error')
@@ -186,8 +213,14 @@ export default function PanelPedidos() {
       {showFinalizar && orden && !tipoPago && (
         <FinalizarModal
           orden={orden}
-          onConfirmTipo={(t) => setTipoPago(t)}
-          onCancel={() => setShowFinalizar(false)}
+          onConfirmTipo={(t, seleccionClub) => {
+            setTipoPago(t)
+            setClub(seleccionClub)
+          }}
+          onCancel={() => {
+            setShowFinalizar(false)
+            setClub(null)
+          }}
         />
       )}
 

@@ -1,13 +1,16 @@
 import { createClient } from '@supabase/supabase-js'
 import type { DataClient, LineaPedido, NuevoItem, CierreDia } from './dataClient'
 import type {
+  ClienteClub,
   Item,
   Mesa,
   Orden,
   OrdenItem,
   Pago,
   Perfil,
+  Premio,
   RegistroAuditoria,
+  ResultadoClub,
   Rol,
   TipoPago,
 } from '../types'
@@ -378,6 +381,64 @@ class SupabaseDataClient implements DataClient {
     if (error) err(error.message)
     if (o.mesa_id) {
       await sb().from('mesas').update({ estado: 'VACIA' }).eq('id', o.mesa_id)
+    }
+  }
+
+  // ── Club DF (spec club-pos-enlace) ─────────────────────────────────────────
+
+  async buscarClienteClub(whatsapp: string): Promise<ClienteClub | null> {
+    const { data, error } = await sb().rpc('buscar_cliente_club', { p_whatsapp: whatsapp })
+    if (error) err(error.message)
+    const row = Array.isArray(data) ? data[0] : data
+    if (!row) return null
+    return { id: row.id, nombre: row.nombre, puntos: Number(row.puntos) }
+  }
+
+  async registrarClienteRapido(nombre: string, whatsapp: string): Promise<ClienteClub> {
+    // Reusa registrar_cliente (bono 50 pts; upsert por WhatsApp — si ya existía, lo devuelve).
+    const { data, error } = await sb().rpc('registrar_cliente', {
+      p_nombre: nombre,
+      p_whatsapp: whatsapp,
+    })
+    if (error) err(error.message)
+    const row = Array.isArray(data) ? data[0] : data
+    if (!row) err('No se pudo registrar al cliente')
+    return { id: row.id, nombre: row.nombre, puntos: Number(row.puntos) }
+  }
+
+  async getPremios(): Promise<Premio[]> {
+    const { data, error } = await sb()
+      .from('premios')
+      .select('id, nombre, costo_puntos')
+      .eq('activo', true)
+      .order('costo_puntos', { ascending: true })
+    if (error) err(error.message)
+    return (data ?? []).map((p) => ({
+      id: p.id,
+      nombre: p.nombre,
+      costo_puntos: Number(p.costo_puntos),
+    }))
+  }
+
+  async finalizarClub(
+    ordenId: string,
+    clienteId: string,
+    premioId: string | null,
+    mozo: string | null,
+  ): Promise<ResultadoClub> {
+    const { data, error } = await sb().rpc('finalizar_club', {
+      p_orden_id: ordenId,
+      p_cliente_id: clienteId,
+      p_premio_id: premioId,
+      p_mozo: mozo,
+    })
+    if (error) err(error.message)
+    const row = Array.isArray(data) ? data[0] : data
+    if (!row) err('El club no respondió')
+    return {
+      puntos_ganados: Number(row.puntos_ganados),
+      puntos_canjeados: Number(row.puntos_canjeados),
+      saldo: Number(row.saldo),
     }
   }
 

@@ -96,6 +96,29 @@ export interface RegistroAuditoria {
   creado_en: string
 }
 
+// ── Club DF (enlace POS ↔ club de puntos; spec club-pos-enlace) ──────────────
+
+// Vista mínima del cliente del club que ve el mozo (nombre + saldo, criterio APP-3).
+export interface ClienteClub {
+  id: string
+  nombre: string
+  puntos: number
+}
+
+// Premio canjeable por puntos ("ItemPremio" de los criterios de Jean).
+export interface Premio {
+  id: string
+  nombre: string
+  costo_puntos: number
+}
+
+// Resultado de finalizar_club: lo que se informa al mozo en el toast.
+export interface ResultadoClub {
+  puntos_ganados: number
+  puntos_canjeados: number
+  saldo: number
+}
+
 export const TIPOS_PAGO: TipoPago[] = ['Yape', 'PLIN', 'Efectivo', 'Tarjeta']
 
 // Saldo pendiente de una orden (total menos lo ya cobrado). Nunca negativo.

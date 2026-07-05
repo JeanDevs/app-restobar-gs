@@ -1,10 +1,13 @@
 import type {
   Categoria,
+  ClienteClub,
   Item,
   Mesa,
   Orden,
   Perfil,
+  Premio,
   RegistroAuditoria,
+  ResultadoClub,
   TipoPago,
 } from '../types'
 
@@ -75,6 +78,22 @@ export interface DataClient {
   verificarClaveAdmin(clave: string): Promise<boolean>
   // Registro de auditoría (solo admin), más reciente primero.
   getAuditoria(): Promise<RegistroAuditoria[]>
+
+  // ── Club DF (opcionales: solo Supabase; el mock no los implementa y la UI
+  //    oculta la sección Club cuando no están — cero impacto en el POS base) ──
+  // Busca un cliente del club por WhatsApp; null si no está registrado.
+  buscarClienteClub?(whatsapp: string): Promise<ClienteClub | null>
+  // Registro rápido por el mozo (R3): crea el cliente con el bono de 50 pts.
+  registrarClienteRapido?(nombre: string, whatsapp: string): Promise<ClienteClub>
+  // Catálogo de premios activos (P2). Vacío ⇒ la UI oculta el canje.
+  getPremios?(): Promise<Premio[]>
+  // Tras cerrar la orden: vincula cliente + acumula ceil(total) pts + canje opcional.
+  finalizarClub?(
+    ordenId: string,
+    clienteId: string,
+    premioId: string | null,
+    mozo: string | null,
+  ): Promise<ResultadoClub>
 
   // ── Realtime (emulado en mock, Supabase Realtime en Fase 2) ──
   subscribe(callback: () => void): () => void // devuelve función de desuscripción

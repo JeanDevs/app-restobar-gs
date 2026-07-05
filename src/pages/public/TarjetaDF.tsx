@@ -1,11 +1,24 @@
-import type { TarjetaCliente } from '../../lib/clubClient'
+import { useEffect, useState } from 'react'
+import { consultarPuntos, type TarjetaCliente } from '../../lib/clubClient'
+import { setTarjeta } from '../../lib/tarjetaLocal'
 
-export const META_PUNTOS = 500
-
-// Tarjeta digital del Club DF: saldo + regla + progreso hacia el canje.
+// Tarjeta digital del Club DF: saldo real + regla (1 sol = 1 punto).
 export default function TarjetaDF({ tarjeta }: { tarjeta: TarjetaCliente }) {
-  const pct = Math.min(100, Math.round((tarjeta.puntos / META_PUNTOS) * 100))
-  const faltan = Math.max(0, META_PUNTOS - tarjeta.puntos)
+  const [puntos, setPuntos] = useState(tarjeta.puntos)
+  const [historicos, setHistoricos] = useState<number | null>(null)
+
+  useEffect(() => {
+    // Refresca el saldo real desde la BD (los puntos se suman al cerrar la mesa en el POS).
+    consultarPuntos(tarjeta.whatsapp)
+      .then((s) => {
+        if (!s) return
+        setPuntos(s.puntos)
+        setHistoricos(s.puntos_historicos)
+        setTarjeta({ ...tarjeta, puntos: s.puntos }) // cachea el saldo fresco
+      })
+      .catch(() => {}) // sin conexión: se muestra el último saldo conocido
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tarjeta.whatsapp])
 
   return (
     <div className="w-full">
@@ -22,34 +35,25 @@ export default function TarjetaDF({ tarjeta }: { tarjeta: TarjetaCliente }) {
           <p className="brand text-2xl text-arena-50">{tarjeta.nombre}</p>
 
           <div className="mt-6 flex items-end gap-2">
-            <span className="text-5xl font-bold text-marca-400">{tarjeta.puntos}</span>
+            <span className="text-5xl font-bold text-marca-400">{puntos}</span>
             <span className="mb-1 text-sm text-arena-300">puntos</span>
           </div>
 
-          {/* Progreso hacia el canje */}
-          <div className="mt-4">
-            <div className="h-2.5 w-full overflow-hidden rounded-full bg-arena-50/10">
-              <div
-                className="h-full rounded-full bg-marca-500 transition-all"
-                style={{ width: `${pct}%` }}
-              />
-            </div>
+          {historicos !== null && historicos > puntos && (
             <p className="mt-2 text-xs text-arena-400">
-              {faltan > 0
-                ? `Te faltan ${faltan} pts para canjear un beneficio 🎁`
-                : '¡Ya puedes canjear un beneficio! 🎁'}
+              Has ganado {historicos} pts en total 🏆
             </p>
-          </div>
+          )}
         </div>
       </div>
 
-      {/* Reglas */}
+      {/* Reglas (R8: 1 sol = 1 punto) */}
       <div className="mt-5 rounded-2xl border border-arena-50/10 bg-cacao-900/40 p-5 text-sm text-arena-300">
         <p className="mb-2 font-semibold text-arena-100">¿Cómo funciona?</p>
         <ul className="space-y-1.5">
-          <li>⭐ Cada compra suma <b className="text-marca-300">50 puntos</b>.</li>
-          <li>🎁 Al llegar a <b className="text-marca-300">500 puntos</b> canjeas un beneficio.</li>
-          <li>📱 Muestra esta tarjeta al personal en tu próxima visita.</li>
+          <li>⭐ Cada sol consumido = <b className="text-marca-300">1 punto</b> (S/ 1 = 1 pt).</li>
+          <li>📱 Al pagar, da tu número de WhatsApp al personal para sumar tus puntos.</li>
+          <li>🎁 Canjea premios con tus puntos — pregunta por los premios disponibles.</li>
         </ul>
       </div>
     </div>
