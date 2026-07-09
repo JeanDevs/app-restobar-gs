@@ -1,66 +1,85 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { MARCA } from '../../lib/marca'
+import { useItems } from '../../hooks/useItems'
+import type { Item } from '../../types'
 
-// Carta pública (comensal) — estática esta noche. Fase 2: leer de Supabase (items) en vivo.
-interface CartaItem {
-  nombre: string
-  precio: number
+// Carta pública (comensal, sin login). Lee los ítems de Supabase en vivo:
+// lo que el ADMIN edita en "Gestionar menú" se refleja aquí (RLS permite leer
+// los ítems activos sin autenticación; el canal Realtime empuja los cambios).
+
+// Orden en que se muestran las secciones. Las categorías que no estén acá se
+// agregan al final en orden alfabético (así una categoría nueva del admin
+// aparece sola, sin tocar código).
+const ORDEN_CATEGORIAS = [
+  'Hamburguesas',
+  'Pollo Broster',
+  'Alitas',
+  'Cócteles',
+  'Cervezas',
+  'Bebidas Sin Alcohol',
+]
+
+// Categorías que existen en el POS pero NO se muestran en la carta pública.
+const CATEGORIAS_OCULTAS = new Set(['Cigarros'])
+
+// Categorías del POS que se muestran juntas bajo un mismo título en la carta
+// pública (la BD las mantiene separadas para el POS).
+const CATEGORIA_DISPLAY: Record<string, string> = {
+  Gaseosas: 'Bebidas Sin Alcohol',
+  Aguas: 'Bebidas Sin Alcohol',
 }
+
 interface CartaCategoria {
   id: string
   titulo: string
   nota?: string
-  items: CartaItem[]
+  items: Item[]
 }
 
-const CARTA: CartaCategoria[] = [
-  {
-    id: 'cocteles',
-    titulo: 'Cócteles',
-    nota: 'Todos S/ 15.00',
-    items: [
-      { nombre: 'Mojito', precio: 15 },
-      { nombre: 'Piña Colada', precio: 15 },
-      { nombre: 'Pisco Sour', precio: 15 },
-      { nombre: 'Laguna Azul', precio: 15 },
-      { nombre: 'Machupichu', precio: 15 },
-      { nombre: 'Cuba Libre', precio: 15 },
-      { nombre: 'Pantera', precio: 15 },
-      { nombre: 'Algarrobina', precio: 15 },
-      { nombre: 'Durazno', precio: 15 },
-      { nombre: 'Mango', precio: 15 },
-    ],
-  },
-  {
-    id: 'cervezas',
-    titulo: 'Cervezas',
-    nota: 'Promos por cantidad',
-    items: [
-      { nombre: 'Cerveza (1 und)', precio: 15 },
-      { nombre: 'Cerveza (3 und)', precio: 40 },
-      { nombre: 'Cerveza (5 und)', precio: 65 },
-      { nombre: 'Cerveza 3 Cruces (1 und)', precio: 8 },
-      { nombre: 'Cerveza 3 Cruces (2 und)', precio: 15 },
-    ],
-  },
-  {
-    id: 'gaseosas',
-    titulo: 'Gaseosas',
-    items: [
-      { nombre: 'Coca Cola / Inka Cola (500 mL)', precio: 5 },
-      { nombre: 'Coca Cola / Inka Cola (1.5 L)', precio: 14 },
-    ],
-  },
-  {
-    id: 'aguas',
-    titulo: 'Aguas',
-    items: [
-      { nombre: 'Agua Cielo (625 mL)', precio: 3 },
-      { nombre: 'San Luis (625 mL)', precio: 3.5 },
-      { nombre: 'San Mateo (625 mL)', precio: 3.5 },
-    ],
-  },
-]
+// Convierte un nombre de categoría en un id estable para el ancla (#cat-...).
+function slug(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+}
+
+// Agrupa los ítems por categoría, aplica el orden preferido y oculta las
+// categorías no públicas. Deriva una nota "Todos S/ X" cuando todos comparten
+// el mismo precio.
+function agruparCarta(items: Item[]): CartaCategoria[] {
+  const porCat = new Map<string, Item[]>()
+  for (const it of items) {
+    if (CATEGORIAS_OCULTAS.has(it.categoria)) continue
+    const cat = CATEGORIA_DISPLAY[it.categoria] ?? it.categoria
+    const arr = porCat.get(cat) ?? []
+    arr.push(it)
+    porCat.set(cat, arr)
+  }
+
+  const nombres = [...porCat.keys()].sort((a, b) => {
+    const ia = ORDEN_CATEGORIAS.indexOf(a)
+    const ib = ORDEN_CATEGORIAS.indexOf(b)
+    if (ia !== -1 && ib !== -1) return ia - ib
+    if (ia !== -1) return -1
+    if (ib !== -1) return 1
+    return a.localeCompare(b, 'es')
+  })
+
+  return nombres.map((titulo) => {
+    const propios = (porCat.get(titulo) ?? []).sort((a, b) =>
+      a.nombre.localeCompare(b.nombre, 'es'),
+    )
+    const precios = new Set(propios.map((i) => i.precio))
+    const nota =
+      propios.length > 1 && precios.size === 1
+        ? `Todos S/ ${propios[0].precio.toFixed(2)}`
+        : undefined
+    return { id: slug(titulo), titulo, nota, items: propios }
+  })
+}
 
 function Precio({ value }: { value: number }) {
   return (
@@ -79,7 +98,7 @@ function irACategoria(id: string) {
   }
 }
 
-function CategoriaNav() {
+function CategoriaNav({ carta }: { carta: CartaCategoria[] }) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -95,7 +114,7 @@ function CategoriaNav() {
         </button>
         {open && (
           <div id="carta-cat-mobile" className="border-t border-arena-50/10 bg-[#0c0c0e]">
-            {CARTA.map((cat) => (
+            {carta.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => {
@@ -113,7 +132,7 @@ function CategoriaNav() {
 
       {/* Escritorio: pestañas horizontales */}
       <div id="carta-cat-desktop" className="mx-auto hidden max-w-lg gap-2 overflow-x-auto px-5 py-3 sm:flex">
-        {CARTA.map((cat) => (
+        {carta.map((cat) => (
           <button
             key={cat.id}
             onClick={() => irACategoria(cat.id)}
@@ -128,6 +147,9 @@ function CategoriaNav() {
 }
 
 export default function PublicCarta() {
+  const { items, loading } = useItems()
+  const carta = useMemo(() => agruparCarta(items), [items])
+
   return (
     <div className="min-h-full bg-[#08080a] text-arena-100">
       {/* Header */}
@@ -151,13 +173,23 @@ export default function PublicCarta() {
             Club DF
           </a>
         </div>
-        <CategoriaNav />
+        {carta.length > 0 && <CategoriaNav carta={carta} />}
       </header>
 
       <main className="mx-auto max-w-lg px-6 pb-24 pt-8">
         <h1 className="brand mb-8 text-center text-3xl text-arena-50">Carta</h1>
 
-        {CARTA.map((cat) => (
+        {loading && (
+          <p className="py-16 text-center text-sm text-arena-400">Cargando carta…</p>
+        )}
+
+        {!loading && carta.length === 0 && (
+          <p className="py-16 text-center text-sm text-arena-400">
+            La carta se está actualizando. Vuelve en un momento.
+          </p>
+        )}
+
+        {carta.map((cat) => (
           <section key={cat.id} id={`cat-${cat.id}`} className="mb-10">
             <div className="mb-4 flex items-baseline justify-between border-b border-arena-50/10 pb-2">
               <h2 className="brand text-2xl text-marca-300">{cat.titulo}</h2>
@@ -165,7 +197,7 @@ export default function PublicCarta() {
             </div>
             <ul className="divide-y divide-arena-50/5">
               {cat.items.map((item) => (
-                <li key={item.nombre} className="flex items-baseline justify-between gap-3 py-3">
+                <li key={item.id} className="flex items-baseline justify-between gap-3 py-3">
                   <span className="text-arena-100">{item.nombre}</span>
                   <span className="flex-1 border-b border-dotted border-arena-50/15" />
                   <Precio value={item.precio} />

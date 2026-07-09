@@ -117,6 +117,8 @@ class SupabaseDataClient implements DataClient {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orden_items' }, () => this.emit())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'pagos' }, () => this.emit())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'mesas' }, () => this.emit())
+      // items: la carta pública (y el POS) se actualizan en vivo al editar el menú.
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'items' }, () => this.emit())
       .subscribe()
   }
 

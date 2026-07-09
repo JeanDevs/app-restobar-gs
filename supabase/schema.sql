@@ -131,10 +131,11 @@ drop policy if exists "perfiles_select" on public.perfiles;
 create policy "perfiles_select" on public.perfiles for select
   using (id = auth.uid() or public.rol_actual() = 'ADMIN');
 
--- ITEMS: lectura para autenticados; escritura solo ADMIN.
+-- ITEMS: lectura pública de ítems activos (carta del QR, comensal sin login) +
+-- lectura total para autenticados (POS); escritura solo ADMIN.
 drop policy if exists "items_select" on public.items;
 create policy "items_select" on public.items for select
-  using (auth.role() = 'authenticated');
+  using (activo = true or auth.role() = 'authenticated');
 
 drop policy if exists "items_write_admin" on public.items;
 create policy "items_write_admin" on public.items for all

@@ -35,11 +35,18 @@
   - POS: sección ⭐ Club DF opcional en el modal de cierre; club post-cierre NO bloqueante.
   - `/club`: tarjeta muestra regla nueva + saldo real.
 
+- **🆕 Workstream nuevo (2026-07-09): Marketing Destino Final** (`specs/marketing/`).
+  Plan maestro aprobado en `specs/marketing/PLAN_MAESTRO_MARKETING.md` (6 fases F0–F5,
+  decisiones D-M1…D-M8); estado vivo en `specs/marketing/context.md`. Próximo paso:
+  **F0 línea base** (hilo nuevo, ver sección "Cómo retomar" en ese context).
+
 - **📝 Próximas acciones:**
   1. **Jean: lista de premios** (nombre + costo en puntos) → sembrar `premios` (el canje ya
      está desplegado; aparece solo cuando haya premios activos).
-  2. P3 del enlace: listar/buscar clientes desde el POS + historial de canjes en `/club`.
-  3. Fase 2 pendiente: carta dinámica desde Supabase.
+  2. **Marketing F0:** línea base desde POS + confirmar horario fin de semana y margen
+     (ver `specs/marketing/context.md`).
+  3. P3 del enlace: listar/buscar clientes desde el POS + historial de canjes en `/club`.
+  4. ✅ Carta dinámica desde Supabase (2026-07-09) — falta **deploy a prod** para publicarla.
 
 - **📝 Backlog de mejoras pendientes:** ver [`MEJORAS.md`](MEJORAS.md) (pagos PLIN/Tarjeta, venta en
   barra, permisos por mozo, cerrar día, pago parcial por ítem, nombre de comensal, etc.).
@@ -90,6 +97,19 @@ npm install && npm run dev     # http://localhost:5173
 6. **Verification:** Login en producción + flujos completos
 
 ## Changelog
+
+- **2026-07-09 (carta dinámica)** — **Carta pública conectada al admin.** `PublicCarta.tsx`
+  dejó de ser un array hardcodeado: ahora lee `items` de Supabase vía `useItems` (RLS
+  `items_select` ya permitía lectura pública de activos), agrupa por categoría con orden
+  preferido (`ORDEN_CATEGORIAS`), oculta `Cigarros` del público (`CATEGORIAS_OCULTAS`) y
+  deriva la nota "Todos S/ X" cuando la categoría tiene precio único. Lo que el admin edita
+  en **Gestionar menú** se refleja en la carta. Realtime: `items` añadido a la publicación
+  `supabase_realtime` (migración `realtime_items_carta`) y al canal del cliente → cambios en
+  vivo sin refrescar. **Comida sembrada** (8 ítems): Hamburguesas (Artesanal 16, Royal 21),
+  Pollo Broster (Alita 15, Pierna 17, Pecho 19), Alitas (x6 21, x10 29, x20 48). Build verde;
+  verificado en `/carta` (comida arriba, Cigarros oculto, sin errores de consola). **Pendiente:
+  deploy a producción** (`destinofinal.vercel.app`) para que la carta en vivo tome estos cambios
+  de código; los ítems ya están en la BD de prod. Cierra el pendiente "Fase 2: carta dinámica".
 
 - **2026-06-22 (mejora total · rama `development`)** — **Bloqueador de login RESUELTO** (usuarios
   auth `mozo1`/`admin` verificados vía MCP: hashes de password correctos, emails confirmados, UUIDs
