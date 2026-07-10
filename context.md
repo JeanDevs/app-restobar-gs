@@ -46,7 +46,7 @@
   2. **Marketing F0:** línea base desde POS + confirmar horario fin de semana y margen
      (ver `specs/marketing/context.md`).
   3. P3 del enlace: listar/buscar clientes desde el POS + historial de canjes en `/club`.
-  4. ✅ Carta dinámica desde Supabase (2026-07-09) — falta **deploy a prod** para publicarla.
+  4. ✅ Carta dinámica desde Supabase — EN PRODUCCIÓN (2026-07-09).
 
 - **📝 Backlog de mejoras pendientes:** ver [`MEJORAS.md`](MEJORAS.md) (pagos PLIN/Tarjeta, venta en
   barra, permisos por mozo, cerrar día, pago parcial por ítem, nombre de comensal, etc.).
@@ -106,10 +106,13 @@ npm install && npm run dev     # http://localhost:5173
   en **Gestionar menú** se refleja en la carta. Realtime: `items` añadido a la publicación
   `supabase_realtime` (migración `realtime_items_carta`) y al canal del cliente → cambios en
   vivo sin refrescar. **Comida sembrada** (8 ítems): Hamburguesas (Artesanal 16, Royal 21),
-  Pollo Broster (Alita 15, Pierna 17, Pecho 19), Alitas (x6 21, x10 29, x20 48). Build verde;
-  verificado en `/carta` (comida arriba, Cigarros oculto, sin errores de consola). **Pendiente:
-  deploy a producción** (`destinofinal.vercel.app`) para que la carta en vivo tome estos cambios
-  de código; los ítems ya están en la BD de prod. Cierra el pendiente "Fase 2: carta dinámica".
+  Pollo Broster (Alita 15, Pierna 17, Pecho 19), Alitas (x6 21, x10 29, x20 48). Gaseosas + Aguas
+  se muestran juntas bajo **"Bebidas Sin Alcohol"** (`CATEGORIA_DISPLAY`). Build verde;
+  verificado en `/carta` (comida arriba, Cigarros oculto, sin errores de consola).
+  **✅ EN PRODUCCIÓN** (`destinofinal.vercel.app/carta`, commit `41c5226`, deploy READY): bundle
+  en vivo verificado con el código nuevo; ítems ya en la BD de prod. Cierra "Fase 2: carta dinámica".
+  Gestión 100% self-service desde admin → Gestionar menú (precios/productos/categorías nuevas se
+  reflejan en la carta del QR vía Realtime, sin tocar código).
 
 - **2026-06-22 (mejora total · rama `development`)** — **Bloqueador de login RESUELTO** (usuarios
   auth `mozo1`/`admin` verificados vía MCP: hashes de password correctos, emails confirmados, UUIDs
