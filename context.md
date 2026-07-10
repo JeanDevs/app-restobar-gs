@@ -35,10 +35,27 @@
   - POS: sección ⭐ Club DF opcional en el modal de cierre; club post-cierre NO bloqueante.
   - `/club`: tarjeta muestra regla nueva + saldo real.
 
-- **🆕 Workstream nuevo (2026-07-09): Marketing Destino Final** (`specs/marketing/`).
-  Plan maestro aprobado en `specs/marketing/PLAN_MAESTRO_MARKETING.md` (6 fases F0–F5,
-  decisiones D-M1…D-M8); estado vivo en `specs/marketing/context.md`. Próximo paso:
-  **F0 línea base** (hilo nuevo, ver sección "Cómo retomar" en ese context).
+- **🟢 IMPLEMENTADO en `development` (2026-07-09): Identidad Club DF con clave de 4 díg.**
+  (`specs/club-identidad-pin.md`, ver §12). Botón **"Soy cliente"** con login por **WhatsApp + clave
+  de 4 dígitos** (hasheada bcrypt, bloqueo 5 intentos/15 min), sesión por dispositivo (90 días, tabla
+  `sesiones_club`), **"Olvidé mi clave"** por cumpleaños + reset del admin. **Canje solo mozo**. Nueva
+  **sección "Clientes Club DF" en el POS** (admin y mozo, RPCs gateadas por `rol_actual()`). BD:
+  backup `_backup_clientes_20260709` + columnas `pin_*` + RPCs `establecer/verificar/recuperar_pin`,
+  `sesion_valida`, `cerrar_sesion`, `historial_cliente`, `listar_clientes_pos`, `admin_reset_pin`
+  (todo verificado contra la base real; 8 clientes intactos). **Build verde** (138 módulos), smoke
+  test de `/club` OK. **Pendiente:** (1) deploy a prod desde `development`; (2) post-deploy revocar
+  `consultar_puntos` de anon (la /club vieja aún lo usa); (3) prueba de registro/canje reales en vivo.
+  Sin OTP/Gmail (upgrade futuro si hay abuso).
+
+- **🆕 Workstream (2026-07-09): Marketing Destino Final** (`specs/marketing/`).
+  Plan maestro **v1.1** en `specs/marketing/PLAN_MAESTRO_MARKETING.md` (6 fases F0–F5,
+  D-M1…D-M9). **F0 ejecutada parcialmente** (`00_linea_base.md`): ticket promedio real S/ 50.55
+  (POS), horario/margen/handles confirmados por Jean, IG y GBP auditados. **F0 NO cerrada** —
+  faltan 2/4 criterios (historial POS de solo ~2.5 semanas, no 4-8; TikTok y WhatsApp Business
+  sin auditar). Hallazgo urgente y de bajo costo: GBP "Destino FInal Restobar" está **sin
+  reclamar**, con typo en el nombre y sin horario/reseñas/fotos. **D-M9 (nuevo):**
+  automatización transversal, prioridad #1 = contenido (generación+programación); herramienta
+  se decide con ADR en F4, no se asume. Estado vivo en `specs/marketing/context.md`.
 
 - **📝 Próximas acciones:**
   1. **Jean: lista de premios** (nombre + costo en puntos) → sembrar `premios` (el canje ya

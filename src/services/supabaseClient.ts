@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 import type { DataClient, LineaPedido, NuevoItem, CierreDia } from './dataClient'
 import type {
   ClienteClub,
+  ClienteClubDetalle,
   Item,
   Mesa,
   Orden,
@@ -442,6 +443,32 @@ class SupabaseDataClient implements DataClient {
       puntos_canjeados: Number(row.puntos_canjeados),
       saldo: Number(row.saldo),
     }
+  }
+
+  // Sección "Clientes Club DF" del POS (C5). RPC gateada por rol del staff.
+  async listarClientesClub(busqueda: string): Promise<ClienteClubDetalle[]> {
+    const { data, error } = await sb().rpc('listar_clientes_pos', {
+      p_busqueda: busqueda || null,
+      p_limit: 100,
+      p_offset: 0,
+    })
+    if (error) err(error.message)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (data ?? []).map((r: any) => ({
+      id: r.id,
+      nombre: r.nombre,
+      whatsapp: r.whatsapp,
+      puntos: Number(r.puntos),
+      puntos_historicos: Number(r.puntos_historicos),
+      puntos_usados: Number(r.puntos_usados),
+      tiene_clave: !!r.tiene_clave,
+      created_at: r.created_at,
+    }))
+  }
+
+  async resetearClaveCliente(clienteId: string): Promise<void> {
+    const { error } = await sb().rpc('admin_reset_pin', { p_cliente_id: clienteId })
+    if (error) err(error.message)
   }
 
   async anularOrden(ordenId: string, motivo: string, claveAdmin: string): Promise<void> {

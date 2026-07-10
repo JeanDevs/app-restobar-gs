@@ -6,9 +6,10 @@ import MenuManager from './MenuManager'
 import LogoutButton from './LogoutButton'
 import CerrarDia from './CerrarDia'
 import AuditoriaPanel from './AuditoriaPanel'
+import ClientesClubPanel from './ClientesClubPanel'
 import PanelPedidos from '../Mozo/PanelPedidos'
 
-type Vista = 'resumen' | 'pedidos' | 'menu' | 'auditoria'
+type Vista = 'resumen' | 'pedidos' | 'menu' | 'clientes' | 'auditoria'
 
 export default function AdminLayout() {
   const [vista, setVista] = useState<Vista>('resumen')
@@ -36,6 +37,9 @@ export default function AdminLayout() {
             <button className={navBtn('menu')} onClick={() => setVista('menu')}>
               📋 Menú
             </button>
+            <button className={navBtn('clientes')} onClick={() => setVista('clientes')}>
+              ⭐ Clientes
+            </button>
             <button className={navBtn('auditoria')} onClick={() => setVista('auditoria')}>
               🔒 Auditoría
             </button>
@@ -56,6 +60,7 @@ export default function AdminLayout() {
           )}
           {vista === 'pedidos' && <PanelPedidos />}
           {vista === 'menu' && <MenuManager />}
+          {vista === 'clientes' && <ClientesClubPanel />}
           {vista === 'auditoria' && <AuditoriaPanel />}
         </main>
       </div>

@@ -105,6 +105,19 @@ export interface ClienteClub {
   puntos: number
 }
 
+// Fila de la sección "Clientes Club DF" del POS (spec club-identidad-pin · C5).
+// Solo lectura para admin/mozo. NUNCA incluye el hash de la clave.
+export interface ClienteClubDetalle {
+  id: string
+  nombre: string
+  whatsapp: string
+  puntos: number
+  puntos_historicos: number
+  puntos_usados: number
+  tiene_clave: boolean
+  created_at: string
+}
+
 // Premio canjeable por puntos ("ItemPremio" de los criterios de Jean).
 export interface Premio {
   id: string

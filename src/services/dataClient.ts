@@ -1,6 +1,7 @@
 import type {
   Categoria,
   ClienteClub,
+  ClienteClubDetalle,
   Item,
   Mesa,
   Orden,
@@ -94,6 +95,11 @@ export interface DataClient {
     premioId: string | null,
     mozo: string | null,
   ): Promise<ResultadoClub>
+  // Sección "Clientes Club DF" del POS (C5): lista/busca clientes con sus puntos.
+  // Gateada por rol del staff en el servidor. Solo lectura.
+  listarClientesClub?(busqueda: string): Promise<ClienteClubDetalle[]>
+  // Resetea la clave de un cliente (pin → null); el cliente crea una nueva luego.
+  resetearClaveCliente?(clienteId: string): Promise<void>
 
   // ── Realtime (emulado en mock, Supabase Realtime en Fase 2) ──
   subscribe(callback: () => void): () => void // devuelve función de desuscripción

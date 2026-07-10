@@ -1,25 +1,14 @@
-import { useEffect, useState } from 'react'
-import { consultarPuntos, type TarjetaCliente } from '../../lib/clubClient'
-import { setTarjeta } from '../../lib/tarjetaLocal'
-
 // Tarjeta digital del Club DF: saldo real + regla (1 sol = 1 punto).
-export default function TarjetaDF({ tarjeta }: { tarjeta: TarjetaCliente }) {
-  const [puntos, setPuntos] = useState(tarjeta.puntos)
-  const [historicos, setHistoricos] = useState<number | null>(null)
-
-  useEffect(() => {
-    // Refresca el saldo real desde la BD (los puntos se suman al cerrar la mesa en el POS).
-    consultarPuntos(tarjeta.whatsapp)
-      .then((s) => {
-        if (!s) return
-        setPuntos(s.puntos)
-        setHistoricos(s.puntos_historicos)
-        setTarjeta({ ...tarjeta, puntos: s.puntos }) // cachea el saldo fresco
-      })
-      .catch(() => {}) // sin conexión: se muestra el último saldo conocido
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tarjeta.whatsapp])
-
+// Presentacional: recibe el saldo ya resuelto (de la sesión del cliente).
+export default function TarjetaDF({
+  nombre,
+  puntos,
+  historicos = null,
+}: {
+  nombre: string
+  puntos: number
+  historicos?: number | null
+}) {
   return (
     <div className="w-full">
       {/* La tarjeta */}
@@ -32,7 +21,7 @@ export default function TarjetaDF({ tarjeta }: { tarjeta: TarjetaCliente }) {
           </div>
 
           <p className="mt-6 text-sm text-arena-300">Hola,</p>
-          <p className="brand text-2xl text-arena-50">{tarjeta.nombre}</p>
+          <p className="brand text-2xl text-arena-50">{nombre}</p>
 
           <div className="mt-6 flex items-end gap-2">
             <span className="text-5xl font-bold text-marca-400">{puntos}</span>
@@ -40,9 +29,7 @@ export default function TarjetaDF({ tarjeta }: { tarjeta: TarjetaCliente }) {
           </div>
 
           {historicos !== null && historicos > puntos && (
-            <p className="mt-2 text-xs text-arena-400">
-              Has ganado {historicos} pts en total 🏆
-            </p>
+            <p className="mt-2 text-xs text-arena-400">Has ganado {historicos} pts en total 🏆</p>
           )}
         </div>
       </div>

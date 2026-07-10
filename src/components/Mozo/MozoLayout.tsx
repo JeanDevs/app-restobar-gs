@@ -2,8 +2,9 @@ import { useState } from 'react'
 import Header from '../Shared/Header'
 import PanelPedidos from './PanelPedidos'
 import HistorialDia from './HistorialDia'
+import ClientesClubPanel from '../Admin/ClientesClubPanel'
 
-type Vista = 'pedidos' | 'historial'
+type Vista = 'pedidos' | 'historial' | 'clientes'
 
 export default function MozoLayout() {
   const [vista, setVista] = useState<Vista>('pedidos')
@@ -26,9 +27,14 @@ export default function MozoLayout() {
           <button className={tab('historial')} onClick={() => setVista('historial')}>
             📋 Historial del día
           </button>
+          <button className={tab('clientes')} onClick={() => setVista('clientes')}>
+            ⭐ Clientes
+          </button>
         </div>
 
-        {vista === 'pedidos' ? <PanelPedidos /> : <HistorialDia />}
+        {vista === 'pedidos' && <PanelPedidos />}
+        {vista === 'historial' && <HistorialDia />}
+        {vista === 'clientes' && <ClientesClubPanel />}
       </main>
     </div>
   )
