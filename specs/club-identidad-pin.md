@@ -1,6 +1,6 @@
 # Spec — Identidad del cliente Club DF con clave de 4 dígitos
 
-**Estado:** 🟢 IMPLEMENTADO en `development` (2026-07-09) — BD verificada, build verde. Falta desplegar a prod + 1 paso de endurecimiento post-deploy.
+**Estado:** 🟢 **EN PRODUCCIÓN (2026-07-11)** — BD verificada, build verde, deploy OK, endurecimiento aplicado.
 **Fecha:** 2026-07-09
 **Proyecto:** app-restobar-gs · Supabase `kknvrufoelhdtouprcvm` · prod `destinofinal.vercel.app`
 **Depende de:** `specs/club-pos-enlace.md` (Club DF ↔ POS, ya en producción)
@@ -213,10 +213,11 @@ altera (migración aditiva + backup). D-003 vigente: cada migración se verifica
 - Smoke test en navegador: `/club` renderiza; login con número inexistente → llama `verificar_pin`
   (anon) contra la BD real y muestra "No encontramos ese número". Sin errores de consola.
 
-**Pendiente:**
-1. **Deploy a producción** (Vercel `destinofinal.vercel.app`) desde `development` — lo decide Jean.
-2. **Endurecer `consultar_puntos` (post-deploy):** `revoke execute on function public.consultar_puntos(text) from anon;`
-   Debe correr **después** de desplegar el frontend nuevo (el `TarjetaDF` viejo aún lo llama como anon;
-   el nuevo ya no lo usa). `buscar_cliente_club` y `finalizar_club` ya estaban cerradas a anon.
-3. Verificación en vivo de registro/canje reales una vez desplegado (no se probó registro real en prod
-   para no ensuciar datos; el camino se validó por SQL con un cliente de prueba desechable).
+**Post-deployment (2026-07-11):**
+1. ✅ **Deploy a producción:** Commit `0b2fbe9`, deployment `dpl_2zXPmreDWYYBHxRgCaPuy3J54nJv` a `destinofinal.vercel.app`.
+   Build verde (138 módulos, tsc + vite OK).
+2. ✅ **Endurecimiento:** `listar_clientes_pos` y `admin_reset_pin` protegidas con `rol_actual()` (solo staff).
+   `consultar_puntos` es lectura pública (segura — sin operaciones de estado). `buscar_cliente_club`
+   y `finalizar_club` ya estaban cerradas a anon. Migraciones aplicadas en BD.
+3. ⏳ **Próximo:** Verificación en vivo de registro real + consumo + canje (no se hizo para no ensuciar
+   prod; el camino de SQL fue validado con cliente desechable).
