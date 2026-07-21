@@ -15,7 +15,7 @@ export default function AdminLayout() {
 
   const navBtn = (v: Vista) =>
     [
-      'flex-1 rounded-lg px-3 py-2.5 text-center text-sm font-medium transition md:w-full md:flex-none md:text-left',
+      'shrink-0 rounded-lg px-3 py-2.5 text-center text-sm font-medium transition md:w-full md:text-left',
       vista === v ? 'bg-marca-500 text-white' : 'text-cacao-600 hover:bg-cacao-100',
     ].join(' ')
 
@@ -26,7 +26,9 @@ export default function AdminLayout() {
       <div className="mx-auto flex max-w-6xl flex-col gap-4 p-3 sm:p-4 md:flex-row">
         {/* Sidebar (tabs en móvil, columna en desktop) */}
         <aside className="card h-fit w-full shrink-0 p-3 md:w-48">
-          <nav className="flex gap-2 md:flex-col">
+          {/* overflow-x-auto: si las pestañas no caben en la pantalla, hacen scroll
+              horizontal en vez de desbordar la tarjeta (evita romper el layout). */}
+          <nav className="flex gap-2 overflow-x-auto md:flex-col md:overflow-visible">
             <button className={navBtn('resumen')} onClick={() => setVista('resumen')}>
               📊 Resumen
             </button>
